@@ -1,66 +1,454 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Write-ups</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #1a1a2e;
-            color: #eee;
-        }
-        h1 {
-            border-bottom: 2px solid #d33;
-            padding-bottom: 10px;
-            color: #ff6b6b;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            margin: 15px 0;
-            padding: 15px;
-            background: #16213e;
-            border-radius: 8px;
-            transition: transform 0.2s;
-        }
-        li:hover {
-            transform: translateX(10px);
-        }
-        a {
-            color: #4ecdc4;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        a:hover {
-            color: #ff6b6b;
-        }
-        .description {
-            color: #aaa;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTF Write-ups — fridaynigthfunkin18-lab</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --accent: #00ff9d;
+    --accent2: #ff6b6b;
+    --accent3: #4e9eff;
+    --text: #c9d8f0;
+    --text-muted: #5a7298;
+    --text-bright: #eef4ff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,157,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,157,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 52px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  h1 .accent { color: var(--accent); }
+
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 0.97rem;
+    max-width: 520px;
+    margin-bottom: 28px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .stat-num {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label { color: var(--text-muted); }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    animation: fadeUp 0.4s ease 0.1s both;
+  }
+
+  .filter-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 16px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,157,0.06);
+  }
+
+  /* WRITE-UP CARDS */
+  .cards { display: grid; gap: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 28px;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, background 0.25s, transform 0.25s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.25s;
+    transform-origin: bottom;
+  }
+
+  .card:hover {
+    border-color: rgba(0,255,157,0.3);
+    background: var(--surface2);
+    transform: translateX(4px);
+  }
+
+  .card:hover::before { transform: scaleY(1); }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .badge-thm    { background: rgba(78,158,255,0.12); color: var(--accent3); border: 1px solid rgba(78,158,255,0.25); }
+  .badge-medium { background: rgba(255,165,0,0.1); color: #ffaa00; border: 1px solid rgba(255,165,0,0.25); }
+  .badge-easy   { background: rgba(0,255,157,0.1); color: var(--accent); border: 1px solid rgba(0,255,157,0.25); }
+  .badge-hard   { background: rgba(255,107,107,0.1); color: var(--accent2); border: 1px solid rgba(255,107,107,0.25); }
+  .badge-linux  { background: rgba(0,255,157,0.07); color: #6ee7b7; border: 1px solid rgba(0,255,157,0.15); }
+  .badge-win    { background: rgba(78,158,255,0.07); color: #93c5fd; border: 1px solid rgba(78,158,255,0.15); }
+  .badge-docker { background: rgba(0,157,255,0.07); color: #00b4d8; border: 1px solid rgba(0,157,255,0.2); }
+
+  .card-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+
+  .card-chain {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .chain-step {
+    background: rgba(0,255,157,0.06);
+    border: 1px solid rgba(0,255,157,0.15);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+
+  .chain-arrow { color: var(--border); }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .card-flags {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* COMING SOON CARD */
+  .card-soon {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .card-soon::before { display: none; }
+
+  .soon-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: rgba(90,114,152,0.2);
+    border: 1px solid rgba(90,114,152,0.3);
+    color: var(--text-muted);
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    margin-top: 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.12s; }
+  .card:nth-child(3) { animation-delay: 0.19s; }
+  .card:nth-child(4) { animation-delay: 0.26s; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+</style>
 </head>
 <body>
-    <h1>🧨 CTF Write-ups</h1>
-    <p>Colección de máquinas resueltas con metodología de Red Team.</p>
-    <ul>
-        <li>
-            <a href="dogcat{33}.html">🐶🐱 Dogcat</a>
-            <div class="description">TryHackMe - LFI → Log Poisoning → RCE → Docker Escape</div>
-        </li>
-        <li>
-            <a href="breaking-rsa.html">🔐 Breaking RSA</a>
-            <div class="description">TryHackMe - Factorización de Fermat y acceso root</div>
-        </li>
-        <!-- Aquí puedes agregar más write-ups en el futuro -->
-    </ul>
+<div class="wrapper">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-label">// Red Team · CTF Write-ups</div>
+    <h1>🧨 <span class="accent">fridaynigthfunkin</span><br>18-lab</h1>
+    <p class="hero-sub">Colección de máquinas resueltas con metodología de Red Team. LFI, RCE, PrivEsc, Docker Escape y más.</p>
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num">2</span>
+        <span class="stat-label">máquinas resueltas</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">2</span>
+        <span class="stat-label">plataformas</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">por resolver</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- FILTER -->
+  <div class="filter-bar">
+    <button class="filter-btn active">Todos</button>
+    <button class="filter-btn">TryHackMe</button>
+    <button class="filter-btn">Linux</button>
+    <button class="filter-btn">Windows</button>
+    <button class="filter-btn">Web</button>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <!-- Dogcat -->
+    <a href="dogcat{33}.html" class="card">
+      <div class="card-top">
+        <div class="card-title">🐶🐱 Dogcat</div>
+        <div class="card-badges">
+          <span class="badge badge-thm">TryHackMe</span>
+          <span class="badge badge-medium">Media</span>
+          <span class="badge badge-linux">Linux</span>
+          <span class="badge badge-docker">Docker</span>
+        </div>
+      </div>
+      <div class="card-desc">
+        Aplicación PHP vulnerable a LFI. Se encadena con Log Poisoning para obtener RCE, se escala a root via sudo env y se escapa del contenedor Docker mediante un volumen del host montado con permisos de escritura.
+      </div>
+      <div class="card-chain">
+        <span class="chain-step">LFI</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">Log Poisoning</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">RCE</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">sudo env</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">Docker Escape</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">// 28 Abril 2026</span>
+        <span class="card-flags">🚩 4 flags obtenidas</span>
+      </div>
+    </a>
+
+    <!-- Breaking RSA -->
+    <a href="breaking-rsa.html" class="card">
+      <div class="card-top">
+        <div class="card-title">🔐 Breaking RSA</div>
+        <div class="card-badges">
+          <span class="badge badge-thm">TryHackMe</span>
+          <span class="badge badge-medium">Media</span>
+          <span class="badge badge-linux">Linux</span>
+        </div>
+      </div>
+      <div class="card-desc">
+        Explotación de implementación RSA débil mediante factorización de Fermat. Claves mal generadas permiten recuperar la clave privada y obtener acceso root al sistema.
+      </div>
+      <div class="card-chain">
+        <span class="chain-step">RSA Factorización</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">Clave privada</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">SSH</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step">Root</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">// Próximamente</span>
+        <span class="card-flags">🚩 En progreso</span>
+      </div>
+    </a>
+
+    <!-- Placeholder próxima máquina -->
+    <div class="card card-soon">
+      <div class="card-top">
+        <div class="card-title">⬜ Próxima máquina</div>
+        <div class="card-badges">
+          <span class="soon-tag">COMING SOON</span>
+        </div>
+      </div>
+      <div class="card-desc">El siguiente writeup está en camino...</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div>fridaynigthfunkin18-lab · CTF Write-ups</div>
+    <div><a href="https://github.com/fridaynigthfunkin18-lab/ctf-writeups" target="_blank">github.com/fridaynigthfunkin18-lab</a></div>
+  </footer>
+
+</div>
+
+<script>
+  // Filter buttons (visual only por ahora)
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+
 </body>
 </html>
