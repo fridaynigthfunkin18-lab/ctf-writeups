@@ -172,6 +172,15 @@
       color: var(--text-bright);
       margin-bottom: 10px;
       line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      flex-shrink: 0;
     }
     .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 16px; }
 
@@ -279,7 +288,10 @@
           <span class="cbadge cb-tag">Linux</span>
           <span class="cbadge cb-tag">Docker</span>
         </div>
-        <div class="card-title">🐶🐱 Dogcat</div>
+        <div class="card-title">
+          <img src="imagenes%20maquinas%20de%20THM/dogcat.png" alt="Dogcat" />
+          Dogcat
+        </div>
         <div class="card-desc">Aplicación PHP vulnerable a LFI. Se encadena con Log Poisoning para obtener RCE, se escala a root via sudo env y se escapa del contenedor Docker mediante un volumen del host montado con permisos de escritura.</div>
         <div class="kc-mini">
           <span class="kc-mini-step">LFI</span><span class="kc-mini-arr">→</span>
@@ -302,7 +314,10 @@
           <span class="cbadge cb-tag">Linux</span>
           <span class="cbadge cb-tag">Crypto</span>
         </div>
-        <div class="card-title">🔐 Breaking RSA</div>
+        <div class="card-title">
+          <img src="imagenes%20maquinas%20de%20THM/Breaking_RSA.png" alt="Breaking RSA" />
+          Breaking RSA
+        </div>
         <div class="card-desc">Implementación RSA débil con primos p y q extremadamente cercanos. Se factoriza el módulo n de 4096 bits con el algoritmo de Fermat, se deriva la clave privada y se accede directamente como root via SSH.</div>
         <div class="kc-mini">
           <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
@@ -326,7 +341,10 @@
           <span class="cbadge cb-tag">Web</span>
           <span class="cbadge cb-tag">Forense</span>
         </div>
-        <div class="card-title">🚀 Startup</div>
+        <div class="card-title">
+          <img src="imagenes%20maquinas%20de%20THM/Startup.png" alt="Startup" />
+          Startup
+        </div>
         <div class="card-desc">FTP anónimo con directorio writable expuesto por Apache. Se sube una webshell PHP para obtener RCE, se extraen credenciales de un PCAP capturado en el servidor y se escala a root envenenando un script llamado por cron.</div>
         <div class="kc-mini">
           <span class="kc-mini-step">FTP Upload</span><span class="kc-mini-arr">→</span>
