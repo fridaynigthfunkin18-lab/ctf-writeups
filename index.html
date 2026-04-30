@@ -14,6 +14,7 @@
       --green:   #00ff9d;
       --blue:    #4e9eff;
       --orange:  #ff9d00;
+      --purple:  #c084fc;
       --text:    #c8d4e8;
       --text-dim:#5a6a8a;
       --text-bright:#e8f0ff;
@@ -250,7 +251,7 @@
     <p class="hero-desc">Colección de máquinas resueltas con metodología de Red Team. LFI, RCE, PrivEsc, Docker Escape, Criptografía y más.</p>
     <div class="stats">
       <div class="stat-item">
-        <span class="stat-num">3</span>
+        <span class="stat-num">4</span>
         <span class="stat-label">máquinas resueltas</span>
       </div>
       <div class="stat-item">
@@ -356,6 +357,34 @@
         <div class="card-footer">
           <span class="card-date">28 Abril 2026</span>
           <span class="card-flags" style="color:#ff9d00;">🚩 3 flags obtenidas</span>
+        </div>
+      </a>
+
+      <!-- BASIC PENTESTING -->
+      <a href="basic-pentesting{30}.html" class="card" style="--card-accent: #c084fc;">
+        <div class="card-badges">
+          <span class="cbadge cb-platform">TryHackMe</span>
+          <span class="cbadge cb-diff">Fácil</span>
+          <span class="cbadge cb-tag">Linux</span>
+          <span class="cbadge cb-tag">SMB</span>
+          <span class="cbadge cb-tag">Web</span>
+        </div>
+        <div class="card-title">
+          <img src="img/basic-pentesting.png" alt="Basic Pentesting" />
+          Basic Pentesting
+        </div>
+        <div class="card-desc">Enumeración web con gobuster descubre un share SMB anónimo con usuarios. Se obtienen credenciales SSH via Hydra, se roba la clave privada de kay, se crackea la passphrase con John y se escala a root con sudo.</div>
+        <div class="kc-mini">
+          <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
+          <span class="kc-mini-step">SMB anon</span><span class="kc-mini-arr">→</span>
+          <span class="kc-mini-step">Hydra SSH</span><span class="kc-mini-arr">→</span>
+          <span class="kc-mini-step">id_rsa</span><span class="kc-mini-arr">→</span>
+          <span class="kc-mini-step">john</span><span class="kc-mini-arr">→</span>
+          <span class="kc-mini-step accent" style="background:rgba(192,132,252,.1); color:#c084fc; border-color:rgba(192,132,252,.2);">sudo root</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-date">29 Abril 2026</span>
+          <span class="card-flags" style="color:#c084fc;">🚩 2 flags obtenidas</span>
         </div>
       </a>
 
