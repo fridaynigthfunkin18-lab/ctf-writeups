@@ -1,442 +1,477 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CTF Write-ups — fridaynigthfunkin18-lab</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:      #0a0e17;
-      --bg2:     #0f1422;
-      --bg3:     #151b2e;
-      --border:  #1e2840;
-      --green:   #00ff9d;
-      --blue:    #4e9eff;
-      --orange:  #ff9d00;
-      --purple:  #c084fc;
-      --text:    #c8d4e8;
-      --text-dim:#5a6a8a;
-      --text-bright:#e8f0ff;
-      --mono:    'JetBrains Mono', monospace;
-      --sans:    'Syne', sans-serif;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTF Write-ups — fridaynigthfunkin18-lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e17;
+  --bg2: #0f1422;
+  --bg3: #151b2e;
+  --border: #1e2840;
+  --green: #00ff9d;
+  --blue: #4e9eff;
+  --orange: #ff9d00;
+  --purple: #c084fc;
+  --text: #c8d4e8;
+  --text-dim:#5a6a8a;
+  --text-bright:#e8f0ff;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
-    body {
-      background-color: var(--bg);
-      background-image:
-        linear-gradient(rgba(0,255,157,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,157,.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 14px;
-      line-height: 1.7;
-      min-height: 100vh;
-    }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(0,255,157,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,157,.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
 
-    /* ── HEADER ── */
-    header {
-      border-bottom: 1px solid var(--border);
-      padding: 18px 40px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(10,14,23,.92);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .header-brand { font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--green); letter-spacing: .14em; text-transform: uppercase; }
-    .header-sep { color: var(--border); margin: 0 8px; }
-    .header-sub { font-size: 12px; color: var(--text-dim); }
+/* ── HEADER ── */
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 18px 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10,14,23,.92);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-    /* ── HERO ── */
-    .hero {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 64px 40px 48px;
-    }
-    .hero-label {
-      font-size: 11px;
-      color: var(--green);
-      text-transform: uppercase;
-      letter-spacing: .2em;
-      margin-bottom: 16px;
-      opacity: .8;
-    }
-    .hero-label::before { content: '// '; color: var(--text-dim); }
-    h1 {
-      font-family: var(--sans);
-      font-size: clamp(2.2rem, 6vw, 3.8rem);
-      font-weight: 800;
-      color: var(--text-bright);
-      line-height: 1.05;
-      margin-bottom: 20px;
-    }
-    .hero-desc { font-size: 14px; color: var(--text-dim); max-width: 560px; line-height: 1.8; margin-bottom: 36px; }
+.header-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* ── STATS ── */
-    .stats { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 0; }
-    .stat-item { }
-    .stat-num {
-      font-family: var(--sans);
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: var(--green);
-      line-height: 1;
-      display: block;
-    }
-    .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .08em; }
+.header-brand { font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--green); letter-spacing: .14em; text-transform: uppercase; }
+.header-sep { color: var(--border); margin: 0 8px; }
+.header-sub { font-size: 12px; color: var(--text-dim); }
 
-    /* ── FILTERS ── */
-    .filters-wrap { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .filters {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 14px 40px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .filter-btn {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 5px 14px;
-      border-radius: 5px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-dim);
-      cursor: pointer;
-      transition: all .2s;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    .filter-btn:hover, .filter-btn.active {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(0,255,157,.06);
-    }
+/* ── HERO ── */
+.hero {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 64px 40px 48px;
+}
 
-    /* ── GRID ── */
-    .grid-wrap { max-width: 980px; margin: 0 auto; padding: 40px 40px 80px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
+.hero-label {
+  font-size: 11px;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  margin-bottom: 16px;
+  opacity: .8;
+}
+.hero-label::before { content: '// '; color: var(--text-dim); }
 
-    /* ── CARD ── */
-    .card {
-      display: block;
-      text-decoration: none;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      transition: all .25s;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--card-accent, var(--green));
-      opacity: 0;
-      transition: opacity .25s;
-    }
-    .card:hover { border-color: var(--card-accent, var(--green)); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
-    .card:hover::before { opacity: 1; }
+h1 {
+  font-family: var(--sans);
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 800;
+  color: var(--text-bright);
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
 
-    .card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-    .cbadge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 3px;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-    }
-    .cb-platform { background: rgba(78,158,255,.1); color: var(--blue); border: 1px solid rgba(78,158,255,.2); }
-    .cb-diff     { background: rgba(255,157,0,.08); color: #ffb347; border: 1px solid rgba(255,157,0,.15); }
-    .cb-tag      { background: rgba(255,255,255,.04); color: var(--text-dim); border: 1px solid var(--border); }
+.hero-desc { font-size: 14px; color: var(--text-dim); max-width: 560px; line-height: 1.8; margin-bottom: 36px; }
 
-    .card-title {
-      font-family: var(--sans);
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text-bright);
-      margin-bottom: 10px;
-      line-height: 1.2;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card-title img {
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-    .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 16px; }
+/* ── STATS ── */
+.stats { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 0; }
+.stat-num {
+  font-family: var(--sans);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+  display: block;
+}
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .08em; }
 
-    /* kill chain mini */
-    .kc-mini { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 18px; }
-    .kc-mini-step {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 3px;
-      background: rgba(255,255,255,.04);
-      color: var(--text-dim);
-      border: 1px solid var(--border);
-    }
-    .kc-mini-step.accent { background: rgba(0,255,157,.07); color: var(--card-accent, var(--green)); border-color: rgba(0,255,157,.15); }
-    .kc-mini-arr { color: var(--border); font-size: 11px; }
+/* ── FILTERS ── */
+.filters-wrap { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.filters {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 14px 40px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .2s;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0,255,157,.06);
+}
 
-    .card-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 12px; }
-    .card-date { font-size: 11px; color: var(--text-dim); }
-    .card-date::before { content: '// '; }
-    .card-flags { font-size: 11px; color: var(--card-accent, var(--green)); font-weight: 700; }
+/* ── GRID ── */
+.grid-wrap { max-width: 980px; margin: 0 auto; padding: 40px 40px 80px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; }
 
-    /* ── COMING SOON ── */
-    .card-soon {
-      background: var(--bg2);
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      min-height: 200px;
-      gap: 10px;
-    }
-    .soon-icon { font-size: 28px; opacity: .3; }
-    .soon-label { font-family: var(--sans); font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .15em; }
-    .soon-sub { font-size: 11px; color: var(--text-dim); opacity: .6; }
+/* ── CARD ── */
+.card {
+  display: block;
+  text-decoration: none;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all .25s;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--green));
+  opacity: 0;
+  transition: opacity .25s;
+}
+.card:hover { border-color: var(--card-accent, var(--green)); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+.card:hover::before { opacity: 1; }
 
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 22px 40px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-    footer a { color: var(--green); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-  </style>
+.card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cbadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.cb-platform { background: rgba(78,158,255,.1);  color: var(--blue);   border: 1px solid rgba(78,158,255,.2); }
+.cb-diff     { background: rgba(255,157,0,.08);  color: #ffb347;       border: 1px solid rgba(255,157,0,.15); }
+.cb-easy     { background: rgba(0,255,157,.07);  color: #00cc7a;       border: 1px solid rgba(0,255,157,.15); }
+.cb-tag      { background: rgba(255,255,255,.04);color: var(--text-dim);border: 1px solid var(--border); }
+.cb-blue     { background: rgba(6,182,212,.1);   color: #22d3ee;       border: 1px solid rgba(6,182,212,.2); }
+
+.card-title {
+  font-family: var(--sans);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 10px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 16px; }
+
+/* kill chain mini */
+.kc-mini { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 18px; }
+.kc-mini-step {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.04);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.kc-mini-step.accent { background: rgba(0,255,157,.07); color: var(--card-accent, var(--green)); border-color: rgba(0,255,157,.15); }
+.kc-mini-arr { color: var(--border); font-size: 11px; }
+
+.card-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 12px; }
+.card-date { font-size: 11px; color: var(--text-dim); }
+.card-date::before { content: '// '; }
+.card-flags { font-size: 11px; color: var(--card-accent, var(--green)); font-weight: 700; }
+
+/* ── COMING SOON ── */
+.card-soon {
+  background: var(--bg2);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 200px;
+  gap: 10px;
+}
+.soon-icon  { font-size: 28px; opacity: .3; }
+.soon-label { font-family: var(--sans); font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .15em; }
+.soon-sub   { font-size: 11px; color: var(--text-dim); opacity: .6; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 40px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+footer a { color: var(--green); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header>
-    <div class="header-dot"></div>
-    <span class="header-brand">fridaynigthfunkin18-lab</span>
-    <span class="header-sep">/</span>
-    <span class="header-sub">Red Team · CTF Write-ups</span>
-  </header>
+<!-- HEADER -->
+<header>
+  <div class="header-dot"></div>
+  <span class="header-brand">fridaynigthfunkin18-lab</span>
+  <span class="header-sep">/</span>
+  <span class="header-sub">Red Team · CTF Write-ups</span>
+</header>
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-label">Red Team · CTF Write-ups</div>
-    <h1>🧨 fridaynigthfunkin<br>18-lab</h1>
-    <p class="hero-desc">Colección de máquinas resueltas con metodología de Red Team. LFI, RCE, PrivEsc, Docker Escape, Criptografía y más.</p>
-    <div class="stats">
-      <div class="stat-item">
-        <span class="stat-num">5</span>
-        <span class="stat-label">máquinas resueltas</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">1</span>
-        <span class="stat-label">plataforma</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num">∞</span>
-        <span class="stat-label">por resolver</span>
-      </div>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Red Team · Blue Team · CTF Write-ups</div>
+  <h1>🧨 fridaynigthfunkin<br>18-lab</h1>
+  <p class="hero-desc">Colección de máquinas resueltas con metodología de Red Team y análisis defensivo Blue Team. LFI, RCE, PrivEsc, Docker Escape, Criptografía, SOC y más.</p>
+  <div class="stats">
+    <div class="stat-item">
+      <span class="stat-num">6</span>
+      <span class="stat-label">máquinas resueltas</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">1</span>
+      <span class="stat-label">plataforma</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">∞</span>
+      <span class="stat-label">por resolver</span>
     </div>
   </div>
+</div>
 
-  <!-- FILTERS -->
-  <div class="filters-wrap">
-    <div class="filters">
-      <button class="filter-btn active">Todos</button>
-      <button class="filter-btn">TryHackMe</button>
-      <button class="filter-btn">Linux</button>
-      <button class="filter-btn">Web</button>
-      <button class="filter-btn">Crypto</button>
-      <button class="filter-btn">Forense</button>
-    </div>
+<!-- FILTERS -->
+<div class="filters-wrap">
+  <div class="filters">
+    <button class="filter-btn active">Todos</button>
+    <button class="filter-btn">TryHackMe</button>
+    <button class="filter-btn">Linux</button>
+    <button class="filter-btn">Web</button>
+    <button class="filter-btn">Crypto</button>
+    <button class="filter-btn">Forense</button>
+    <button class="filter-btn">Blue Team</button>
   </div>
+</div>
 
-  <!-- GRID -->
-  <div class="grid-wrap">
-    <div class="grid">
+<!-- GRID -->
+<div class="grid-wrap">
+  <div class="grid">
 
-      <!-- DOGCAT -->
-      <a href="dogcat{33}.html" class="card" style="--card-accent: #00ff9d;">
-        <div class="card-badges">
-          <span class="cbadge cb-platform">TryHackMe</span>
-          <span class="cbadge cb-diff">Media</span>
-          <span class="cbadge cb-tag">Linux</span>
-          <span class="cbadge cb-tag">Docker</span>
-        </div>
-        <div class="card-title">
-          <img src="img/dogcat.png" alt="Dogcat" />
-          Dogcat
-        </div>
-        <div class="card-desc">Aplicación PHP vulnerable a LFI. Se encadena con Log Poisoning para obtener RCE, se escala a root via sudo env y se escapa del contenedor Docker mediante un volumen del host montado con permisos de escritura.</div>
-        <div class="kc-mini">
-          <span class="kc-mini-step">LFI</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">Log Poisoning</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">RCE</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">sudo env</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step accent">Docker Escape</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-date">28 Abril 2026</span>
-          <span class="card-flags">🚩 4 flags obtenidas</span>
-        </div>
-      </a>
-
-      <!-- BREAKING RSA -->
-      <a href="breaking-rsa{32}.html" class="card" style="--card-accent: #4e9eff;">
-        <div class="card-badges">
-          <span class="cbadge cb-platform">TryHackMe</span>
-          <span class="cbadge cb-diff">Media</span>
-          <span class="cbadge cb-tag">Linux</span>
-          <span class="cbadge cb-tag">Crypto</span>
-        </div>
-        <div class="card-title">
-          <img src="img/Breaking%20RSA.png" alt="Breaking RSA" />
-          Breaking RSA
-        </div>
-        <div class="card-desc">Implementación RSA débil con primos p y q extremadamente cercanos. Se factoriza el módulo n de 4096 bits con el algoritmo de Fermat, se deriva la clave privada y se accede directamente como root via SSH.</div>
-        <div class="kc-mini">
-          <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">id_rsa.pub</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">Fermat</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">p, q</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step accent" style="--card-accent:#4e9eff; background:rgba(78,158,255,.1); color:#4e9eff; border-color:rgba(78,158,255,.2);">SSH root</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-date">28 Abril 2026</span>
-          <span class="card-flags" style="color:#4e9eff;">🚩 1 flag obtenida</span>
-        </div>
-      </a>
-
-      <!-- STARTUP -->
-      <a href="startup{31}.html" class="card" style="--card-accent: #ff9d00;">
-        <div class="card-badges">
-          <span class="cbadge cb-platform">TryHackMe</span>
-          <span class="cbadge cb-diff">Fácil</span>
-          <span class="cbadge cb-tag">Linux</span>
-          <span class="cbadge cb-tag">Web</span>
-          <span class="cbadge cb-tag">Forense</span>
-        </div>
-        <div class="card-title">
-          <img src="img/Startup.png" alt="Startup" />
-          Startup
-        </div>
-        <div class="card-desc">FTP anónimo con directorio writable expuesto por Apache. Se sube una webshell PHP para obtener RCE, se extraen credenciales de un PCAP capturado en el servidor y se escala a root envenenando un script llamado por cron.</div>
-        <div class="kc-mini">
-          <span class="kc-mini-step">FTP Upload</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">RCE</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">PCAP</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">SSH</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step accent" style="background:rgba(255,157,0,.1); color:#ff9d00; border-color:rgba(255,157,0,.2);">Cron root</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-date">28 Abril 2026</span>
-          <span class="card-flags" style="color:#ff9d00;">🚩 3 flags obtenidas</span>
-        </div>
-      </a>
-
-      <!-- BASIC PENTESTING -->
-      <a href="basic-pentesting{30}.html" class="card" style="--card-accent: #c084fc;">
-        <div class="card-badges">
-          <span class="cbadge cb-platform">TryHackMe</span>
-          <span class="cbadge cb-diff">Fácil</span>
-          <span class="cbadge cb-tag">Linux</span>
-          <span class="cbadge cb-tag">SMB</span>
-          <span class="cbadge cb-tag">Web</span>
-        </div>
-        <div class="card-title">
-          <img src="img/basic-pentesting.png" alt="Basic Pentesting" />
-          Basic Pentesting
-        </div>
-        <div class="card-desc">Enumeración web con gobuster descubre un share SMB anónimo con usuarios. Se obtienen credenciales SSH via Hydra, se roba la clave privada de kay, se crackea la passphrase con John y se escala a root con sudo.</div>
-        <div class="kc-mini">
-          <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">SMB anon</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">Hydra SSH</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">id_rsa</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">john</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step accent" style="background:rgba(192,132,252,.1); color:#c084fc; border-color:rgba(192,132,252,.2);">sudo root</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-date">29 Abril 2026</span>
-          <span class="card-flags" style="color:#c084fc;">🚩 2 flags obtenidas</span>
-        </div>
-      </a>
-
-      <!-- OFFENSIVE SECURITY INTRO -->
-      <a href="offensive-security-intro{29}.html" class="card" style="--card-accent: #ff3e3e;">
-        <div class="card-badges">
-          <span class="cbadge cb-platform">TryHackMe</span>
-          <span class="cbadge cb-diff">Fácil</span>
-          <span class="cbadge cb-tag">Web</span>
-          <span class="cbadge cb-tag">Directorios</span>
-        </div>
-        <div class="card-title">
-          <img src="img/Offensive%20Security%20Intro.png" alt="Offensive Security Intro" />
-          Offensive Security Intro
-        </div>
-        <div class="card-desc">Introducción práctica al hacking ético. Se usa gobuster para enumerar directorios ocultos en una aplicación web bancaria falsa, se descubre una ruta no protegida y se manipula para transferir fondos arbitrarios.</div>
-        <div class="kc-mini">
-          <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step">Dir enum</span><span class="kc-mini-arr">→</span>
-          <span class="kc-mini-step accent" style="background:rgba(255,62,62,.1); color:#ff3e3e; border-color:rgba(255,62,62,.2);">Hidden endpoint</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-date">30 Abril 2026</span>
-          <span class="card-flags" style="color:#ff3e3e;">🚩 1 flag obtenida</span>
-        </div>
-      </a>
-
-      <!-- COMING SOON -->
-      <div class="card-soon">
-        <div class="soon-icon">⬜</div>
-        <div class="soon-label">Próxima máquina</div>
-        <div class="soon-sub">COMING SOON<br>El siguiente writeup está en camino...</div>
+    <!-- DOGCAT -->
+    <a href="dogcat{33}.html" class="card" style="--card-accent: #00ff9d;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-diff">Media</span>
+        <span class="cbadge cb-tag">Linux</span>
+        <span class="cbadge cb-tag">Docker</span>
       </div>
+      <div class="card-title">
+        <img src="img/dogcat.png" alt="Dogcat" />
+        Dogcat
+      </div>
+      <div class="card-desc">Aplicación PHP vulnerable a LFI. Se encadena con Log Poisoning para obtener RCE, se escala a root via sudo env y se escapa del contenedor Docker mediante un volumen del host montado con permisos de escritura.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">LFI</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Log Poisoning</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">RCE</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">sudo env</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent">Docker Escape</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">28 Abril 2026</span>
+        <span class="card-flags">🚩 4 flags obtenidas</span>
+      </div>
+    </a>
 
+    <!-- BREAKING RSA -->
+    <a href="breaking-rsa{32}.html" class="card" style="--card-accent: #4e9eff;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-diff">Media</span>
+        <span class="cbadge cb-tag">Linux</span>
+        <span class="cbadge cb-tag">Crypto</span>
+      </div>
+      <div class="card-title">
+        <img src="img/Breaking%20RSA.png" alt="Breaking RSA" />
+        Breaking RSA
+      </div>
+      <div class="card-desc">Implementación RSA débil con primos p y q extremadamente cercanos. Se factoriza el módulo n de 4096 bits con el algoritmo de Fermat, se deriva la clave privada y se accede directamente como root via SSH.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">id_rsa.pub</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Fermat</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">p, q</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent" style="--card-accent:#4e9eff; background:rgba(78,158,255,.1); color:#4e9eff; border-color:rgba(78,158,255,.2);">SSH root</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">28 Abril 2026</span>
+        <span class="card-flags" style="color:#4e9eff;">🚩 1 flag obtenida</span>
+      </div>
+    </a>
+
+    <!-- STARTUP -->
+    <a href="startup{31}.html" class="card" style="--card-accent: #ff9d00;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-diff">Fácil</span>
+        <span class="cbadge cb-tag">Linux</span>
+        <span class="cbadge cb-tag">Web</span>
+        <span class="cbadge cb-tag">Forense</span>
+      </div>
+      <div class="card-title">
+        <img src="img/Startup.png" alt="Startup" />
+        Startup
+      </div>
+      <div class="card-desc">FTP anónimo con directorio writable expuesto por Apache. Se sube una webshell PHP para obtener RCE, se extraen credenciales de un PCAP capturado en el servidor y se escala a root envenenando un script llamado por cron.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">FTP Upload</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">RCE</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">PCAP</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">SSH</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent" style="background:rgba(255,157,0,.1); color:#ff9d00; border-color:rgba(255,157,0,.2);">Cron root</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">28 Abril 2026</span>
+        <span class="card-flags" style="color:#ff9d00;">🚩 3 flags obtenidas</span>
+      </div>
+    </a>
+
+    <!-- BASIC PENTESTING -->
+    <a href="basic-pentesting{30}.html" class="card" style="--card-accent: #c084fc;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-diff">Fácil</span>
+        <span class="cbadge cb-tag">Linux</span>
+        <span class="cbadge cb-tag">SMB</span>
+        <span class="cbadge cb-tag">Web</span>
+      </div>
+      <div class="card-title">
+        <img src="img/basic-pentesting.png" alt="Basic Pentesting" />
+        Basic Pentesting
+      </div>
+      <div class="card-desc">Enumeración web con gobuster descubre un share SMB anónimo con usuarios. Se obtienen credenciales SSH via Hydra, se roba la clave privada de kay, se crackea la passphrase con John y se escala a root con sudo.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">SMB anon</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Hydra SSH</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">id_rsa</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">john</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent" style="background:rgba(192,132,252,.1); color:#c084fc; border-color:rgba(192,132,252,.2);">sudo root</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">29 Abril 2026</span>
+        <span class="card-flags" style="color:#c084fc;">🚩 2 flags obtenidas</span>
+      </div>
+    </a>
+
+    <!-- OFFENSIVE SECURITY INTRO -->
+    <a href="offensive-security-intro{29}.html" class="card" style="--card-accent: #ff3e3e;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-diff">Fácil</span>
+        <span class="cbadge cb-tag">Web</span>
+        <span class="cbadge cb-tag">Directorios</span>
+      </div>
+      <div class="card-title">
+        <img src="img/Offensive%20Security%20Intro.png" alt="Offensive Security Intro" />
+        Offensive Security Intro
+      </div>
+      <div class="card-desc">Introducción práctica al hacking ético. Se usa gobuster para enumerar directorios ocultos en una aplicación web bancaria falsa, se descubre una ruta no protegida y se manipula para transferir fondos arbitrarios.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">gobuster</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Dir enum</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent" style="background:rgba(255,62,62,.1); color:#ff3e3e; border-color:rgba(255,62,62,.2);">Hidden endpoint</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">30 Abril 2026</span>
+        <span class="card-flags" style="color:#ff3e3e;">🚩 1 flag obtenida</span>
+      </div>
+    </a>
+
+    <!-- DEFENSIVE SECURITY INTRO -->
+    <a href="defensive-security-intro{28}.html" class="card" style="--card-accent: #06b6d4;">
+      <div class="card-badges">
+        <span class="cbadge cb-platform">TryHackMe</span>
+        <span class="cbadge cb-easy">Fácil</span>
+        <span class="cbadge cb-blue">Blue Team</span>
+        <span class="cbadge cb-tag">SOC</span>
+        <span class="cbadge cb-tag">Monitoring</span>
+      </div>
+      <div class="card-title">
+        <img src="img/Defensive%20Security%20Intro.png" alt="Defensive Security Intro" />
+        Defensive Security Intro
+      </div>
+      <div class="card-desc">Primer room de defensa. Se adopta el rol de analista SOC frente a un ataque activo de directory bruteforce contra FakeBank. Se identifica la IP atacante, se analiza el vector y se aplican medidas de contención inmediatas.</div>
+      <div class="kc-mini">
+        <span class="kc-mini-step">Detección</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">IP: 32.122.195.63</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Dir bruteforce</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step">Block IP</span><span class="kc-mini-arr">→</span>
+        <span class="kc-mini-step accent" style="background:rgba(6,182,212,.1); color:#06b6d4; border-color:rgba(6,182,212,.2);">Sistema asegurado</span>
+      </div>
+      <div class="card-footer">
+        <span class="card-date">30 Abril 2026</span>
+        <span class="card-flags" style="color:#06b6d4;">🚩 1 flag obtenida</span>
+      </div>
+    </a>
+
+    <!-- COMING SOON -->
+    <div class="card-soon">
+      <div class="soon-icon">⬜</div>
+      <div class="soon-label">Próxima máquina</div>
+      <div class="soon-sub">COMING SOON<br>El siguiente writeup está en camino...</div>
     </div>
+
   </div>
+</div>
 
-  <!-- FOOTER -->
-  <footer>
-    fridaynigthfunkin18-lab · CTF Write-ups &nbsp;·&nbsp;
-    <a href="https://github.com/fridaynigthfunkin18-lab/ctf-writeups">github.com/fridaynigthfunkin18-lab</a>
-  </footer>
+<!-- FOOTER -->
+<footer>
+  fridaynigthfunkin18-lab · CTF Write-ups &nbsp;·&nbsp;
+  <a href="https://github.com/fridaynigthfunkin18-lab/ctf-writeups">github.com/fridaynigthfunkin18-lab</a>
+</footer>
 
-  <script>
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-  </script>
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+</script>
 
 </body>
 </html>
