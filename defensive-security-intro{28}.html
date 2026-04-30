@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Defensive Security Intro — TryHackMe Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:           #0a0e17;
+  --surface:      #0f1520;
+  --surface2:     #141d2e;
+  --surface3:     #1a2440;
+  --border:       #1e2d47;
+  --accent:       #38bdf8;
+  --accent-dim:   rgba(56,189,248,.12);
+  --accent-glow:  rgba(56,189,248,.25);
+  --red:          #ff6b6b;
+  --green:        #00ff9d;
+  --orange:       #fbbf24;
+  --purple:       #c084fc;
+  --text:         #c8d8f0;
+  --text-muted:   #4d6a90;
+  --text-bright:  #e8f4ff;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow top */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, rgba(56,189,248,.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapper {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 28px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── NAV ── */
+.nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-top: 32px;
+  margin-bottom: 28px;
+  transition: all .2s;
+  letter-spacing: .05em;
+}
+.nav-back:hover { border-color: var(--accent); color: var(--accent); }
+.nav-back::before { content: '←'; }
+
+/* ── HERO ── */
+.hero {
+  padding: 12px 0 52px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 52px;
+  animation: fadeDown .6s ease both;
+}
+
+.badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+
+.badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.b-platform { background: rgba(56,189,248,.1); color: var(--accent); border: 1px solid rgba(56,189,248,.25); }
+.b-easy     { background: rgba(0,255,157,.08); color: #00cc7a; border: 1px solid rgba(0,255,157,.2); }
+.b-tag      { background: rgba(255,255,255,.04); color: var(--text-muted); border: 1px solid var(--border); }
+.b-blue     { background: rgba(56,189,248,.08); color: var(--accent); border: 1px solid rgba(56,189,248,.2); }
+.b-new      { background: rgba(251,191,36,.08); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+
+h1 {
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 800;
+  color: var(--text-bright);
+  line-height: 1.08;
+  letter-spacing: -.02em;
+  margin-bottom: 20px;
+}
+h1 .accent { color: var(--accent); }
+
+.hero-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.hero-meta span::before { content: '// '; color: var(--accent); opacity: .5; }
+
+/* ── EXEC SUMMARY BOX ── */
+.exec-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 28px 32px;
+  margin: 40px 0;
+  animation: fadeUp .5s ease .15s both;
+}
+.exec-box-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  opacity: .9;
+}
+.exec-box p { font-size: 14px; color: var(--text); line-height: 1.8; margin: 0; }
+
+/* ── DEFENSE CHAIN ── */
+.defense-chain {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 28px 32px;
+  margin: 40px 0;
+}
+.chain-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.chain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.chain-step {
+  background: var(--accent-dim);
+  border: 1px solid rgba(56,189,248,.2);
+  color: var(--accent);
+  padding: 7px 16px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.chain-step.phase-detect  { border-color: rgba(56,189,248,.35); }
+.chain-step.phase-invest  { border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #fbbf24; }
+.chain-step.phase-contain { border-color: rgba(192,132,252,.35); background: rgba(192,132,252,.08); color: var(--purple); }
+.chain-step.phase-verify  { border-color: rgba(0,255,157,.35); background: rgba(0,255,157,.08); color: var(--green); }
+.chain-arr { color: var(--text-muted); font-size: 16px; }
+
+/* ── SECTIONS ── */
+.section {
+  margin-bottom: 60px;
+  animation: fadeUp .5s ease both;
+}
+.section:nth-child(2) { animation-delay: .05s; }
+.section:nth-child(3) { animation-delay: .1s; }
+.section:nth-child(4) { animation-delay: .15s; }
+.section:nth-child(5) { animation-delay: .2s; }
+.section:nth-child(6) { animation-delay: .25s; }
+.section:nth-child(7) { animation-delay: .3s; }
+.section:nth-child(8) { animation-delay: .35s; }
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-bright);
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+h2 .num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(56,189,248,.2);
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+h3 {
+  font-family: var(--mono);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 30px 0 14px;
+  letter-spacing: .05em;
+}
+h3::before { content: '// '; opacity: .5; }
+
+p { margin-bottom: 14px; font-size: .95rem; color: var(--text); }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: #060b13;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 18px 0;
+  overflow: hidden;
+}
+.code-header {
+  background: var(--surface2);
+  padding: 9px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.code-header-left { display: flex; align-items: center; gap: 8px; }
+.code-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: .5; }
+pre {
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.75;
+  color: #8fb4d8;
+}
+.cmd    { color: #7dd3fc; }
+.val    { color: var(--accent); font-weight: 700; }
+.flag   { color: var(--green); font-weight: 700; }
+.warn   { color: #fbbf24; }
+.comment{ color: #2d4a6a; }
+.url    { color: #a78bfa; }
+.ip     { color: #fb923c; font-weight: 700; }
+.ok     { color: var(--green); }
+
+code {
+  font-family: var(--mono);
+  font-size: .87em;
+  background: var(--accent-dim);
+  border: 1px solid rgba(56,189,248,.15);
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+
+/* ── ALERTS ── */
+.alert {
+  padding: 16px 20px;
+  border-radius: 6px;
+  margin: 18px 0;
+  font-size: .92rem;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+.alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+.alert-info    { background: rgba(56,189,248,.06); border: 1px solid rgba(56,189,248,.2); color: #93c5fd; }
+.alert-warn    { background: rgba(251,191,36,.06); border: 1px solid rgba(251,191,36,.2); color: #fcd34d; }
+.alert-success { background: rgba(0,255,157,.05); border: 1px solid rgba(0,255,157,.18); color: #6ee7b7; }
+.alert-danger  { background: rgba(255,107,107,.06); border: 1px solid rgba(255,107,107,.2); color: #fca5a5; }
+
+/* ── TABLES ── */
+.table-wrap { overflow-x: auto; margin: 18px 0; border-radius: 6px; border: 1px solid var(--border); }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+th {
+  background: var(--surface2);
+  color: var(--accent);
+  text-align: left;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+td {
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:nth-child(even) td { background: rgba(255,255,255,.015); }
+td.sev-critical { color: var(--red); font-weight: 700; }
+td.sev-high     { color: #fb923c; font-weight: 600; }
+td.sev-med      { color: #fbbf24; font-weight: 600; }
+td.sev-low      { color: var(--green); }
+td.accent-cell  { color: var(--accent); font-weight: 700; }
+td.flag-cell    { color: var(--green); font-weight: 700; font-family: var(--mono); }
+td.ip-cell      { color: #fb923c; font-weight: 700; font-family: var(--mono); }
+
+/* ── FINDINGS GRID ── */
+.finding-grid { display: grid; gap: 16px; margin-top: 20px; }
+.finding-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, background .2s;
+}
+.finding-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--fc-color, var(--accent));
+}
+.finding-card:hover { border-color: var(--fc-color, var(--accent)); background: var(--surface2); }
+.finding-card-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fc-color, var(--accent));
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.finding-card-title {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+}
+.finding-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
+.finding-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+.finding-meta-item { font-family: var(--mono); font-size: 11px; }
+.finding-meta-label { color: var(--text-muted); }
+.finding-meta-val { color: var(--text); }
+
+/* ── QA GRID ── */
+.qa-grid { display: grid; gap: 14px; }
+.qa-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px 20px;
+  align-items: start;
+}
+.qa-q-label, .qa-a-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.qa-q-label { background: rgba(56,189,248,.1); color: var(--accent); border: 1px solid rgba(56,189,248,.2); }
+.qa-a-label { background: rgba(0,255,157,.08); color: var(--green); border: 1px solid rgba(0,255,157,.18); }
+.qa-q-text { font-size: 14px; color: var(--text); }
+.qa-a-text { font-family: var(--mono); font-size: 13px; color: var(--green); font-weight: 700; }
+
+/* ── TIMELINE ── */
+.timeline { margin: 24px 0; position: relative; padding-left: 32px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px; top: 6px; bottom: 6px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent), rgba(56,189,248,.1));
+}
+.tl-item { margin-bottom: 28px; position: relative; }
+.tl-dot {
+  position: absolute;
+  left: -29px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tl-dot::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.tl-phase {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.tl-title {
+  font-family: var(--sans);
+  font-size: .98rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+.tl-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+.tl-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 3px 12px;
+  border-radius: 3px;
+}
+.tl-b-detect  { background: rgba(56,189,248,.1); color: var(--accent); border: 1px solid rgba(56,189,248,.2); }
+.tl-b-invest  { background: rgba(251,191,36,.08); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+.tl-b-contain { background: rgba(192,132,252,.08); color: var(--purple); border: 1px solid rgba(192,132,252,.2); }
+.tl-b-verify  { background: rgba(0,255,157,.07); color: var(--green); border: 1px solid rgba(0,255,157,.18); }
+
+/* ── LESSONS GRID ── */
+.lessons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+.lesson-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 22px;
+  transition: border-color .2s;
+}
+.lesson-card:hover { border-color: rgba(56,189,248,.35); }
+.lesson-icon { font-size: 22px; margin-bottom: 12px; display: block; }
+.lesson-title {
+  font-family: var(--sans);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 8px;
+}
+.lesson-desc { font-size: 12px; color: var(--text-muted); line-height: 1.65; }
+
+/* ── FLAG CARD ── */
+.flag-showcase {
+  background: var(--surface);
+  border: 1px solid rgba(0,255,157,.25);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  margin: 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+.flag-showcase::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+.flag-showcase-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.flag-showcase-value {
+  font-family: var(--mono);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: .04em;
+  margin-bottom: 12px;
+}
+.flag-showcase-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── SCORE METER ── */
+.score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-top: 20px; }
+.score-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  text-align: center;
+}
+.score-num {
+  font-family: var(--sans);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--sc-color, var(--accent));
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+}
+.score-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; }
+
+/* ── DASHBOARD MOCKUP ── */
+.dashboard-mockup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 24px 0;
+}
+.dash-titlebar {
+  background: var(--surface2);
+  padding: 10px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dash-dot { width: 8px; height: 8px; border-radius: 50%; }
+.dash-red   { background: #ff6b6b; }
+.dash-yel   { background: #fbbf24; }
+.dash-grn   { background: #00ff9d; }
+.dash-body { padding: 20px; }
+.dash-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(255,107,107,.06);
+  border: 1px solid rgba(255,107,107,.15);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.dash-alert-row .dot-red  { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0; box-shadow: 0 0 6px var(--red); }
+.dash-alert-ip   { color: #fb923c; font-weight: 700; }
+.dash-alert-desc { color: var(--text-muted); flex: 1; }
+.dash-alert-time { color: var(--text-muted); font-size: 11px; }
+.dash-url-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(251,191,36,.04);
+  border: 1px solid rgba(251,191,36,.12);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.dash-url-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+.dash-404 { background: rgba(255,107,107,.12); color: var(--red); border: 1px solid rgba(255,107,107,.2); }
+.dash-200 { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+.dash-url-path { color: #a78bfa; flex: 1; }
+.dash-url-time { color: var(--text-muted); font-size: 11px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding-top: 28px;
+  margin-top: 70px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+footer span.hl { color: var(--accent); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- NAV -->
+  <a href="index.html" class="nav-back">Volver al índice</a>
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="badge-row">
+      <span class="badge b-platform">TryHackMe</span>
+      <span class="badge b-easy">Dificultad: Fácil</span>
+      <span class="badge b-blue">Blue Team</span>
+      <span class="badge b-tag">Defensive Security</span>
+      <span class="badge b-tag">SOC</span>
+      <span class="badge b-tag">Monitoring</span>
+      <span class="badge b-new">🔵 Nuevo rol: Defensor</span>
+    </div>
+
+    <h1>
+      <img src="img/Defensive%20Security%20Intro.png" alt="Defensive Security Intro" style="height:1.1em;vertical-align:middle;margin-right:10px;border-radius:6px;" />
+      Defensive<br><span class="accent">Security Intro</span>
+    </h1>
+
+    <div class="hero-meta">
+      <span>Target: FakeBank (entorno aislado)</span>
+      <span>Rol: Analista SOC</span>
+      <span>Fecha: 30 Abril 2026</span>
+    </div>
+  </header>
+
+  <!-- ── RESUMEN EJECUTIVO ── -->
+  <div class="exec-box">
+    <div class="exec-box-label">⚡ Resumen Ejecutivo</div>
+    <p>
+      Room introductorio de TryHackMe donde se adopta el rol de <strong style="color:var(--text-bright)">defensor</strong>
+      por primera vez. El laboratorio sitúa al analista frente a un dashboard de monitorización en tiempo real de
+      <strong style="color:var(--text-bright)">FakeBank</strong>, con un ataque activo en curso. Se identificó la IP
+      fuente maliciosa <strong style="color:#fb923c;">32.122.195.63</strong> realizando un ataque de fuerza bruta de
+      directorios. Tras analizar el vector de ataque y su último intento
+      (<strong style="color:#a78bfa">https://fakebank.com/admin</strong>), se ejecutaron medidas de contención
+      inmediatas —bloqueo de IP, rate limiting y actualización de reglas— culminando con la flag de verificación
+      <strong style="color:var(--green)">THM{FAKEBANK-SECURED}</strong>.
+    </p>
+  </div>
+
+  <!-- ── DEFENSE CHAIN ── -->
+  <div class="defense-chain">
+    <div class="chain-title">🔵 Defense Chain Completa</div>
+    <div class="chain">
+      <span class="chain-step phase-detect">Detección de tráfico</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-invest">Análisis de alertas</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-invest">URL: /admin</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-contain">Bloqueo de IP</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-contain">Rate Limiting</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-contain">Reglas actualizadas</span>
+      <span class="chain-arr">→</span>
+      <span class="chain-step phase-verify">Sistema asegurado 🏆</span>
+    </div>
+  </div>
+
+  <!-- ═══ 01 — CONTEXTO ═══ -->
+  <div class="section">
+    <h2><span class="num">01</span> Contexto y Objetivo</h2>
+
+    <p>
+      A diferencia de los rooms ofensivos anteriores, este laboratorio sitúa al analista en el lado opuesto:
+      el <strong style="color:var(--text-bright)">equipo Blue Team</strong>. En lugar de encontrar y explotar
+      vulnerabilidades, el objetivo es detectar ataques en curso, investigarlos y aplicar medidas de contención.
+    </p>
+
+    <div class="alert alert-info">
+      <span class="alert-icon">💡</span>
+      <div>
+        <strong>¿Qué es la Defensive Security?</strong> Su objetivo principal es
+        <strong>detectar y responder a ataques</strong> antes de que causen daño real. Engloba áreas como el análisis
+        forense digital, la gestión de SIEM, threat intelligence y respuesta a incidentes.
+      </div>
+    </div>
+
+    <h3>Scope del laboratorio</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Parámetro</th><th>Valor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Entorno</td><td>Dashboard de monitorización FakeBank (laboratorio aislado)</td></tr>
+          <tr><td>Rol asignado</td><td>Analista SOC — Analista de Seguridad Defensiva</td></tr>
+          <tr><td>Objetivo</td><td>Detectar, investigar y contener el ataque en curso</td></tr>
+          <tr><td>Herramientas disponibles</td><td>Dashboard de alertas, registro de URL Discovery, panel de acciones de contención</td></tr>
+          <tr><td>Restricciones</td><td>Ninguna (entorno controlado autocontenido)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 02 — INTERFAZ ═══ -->
+  <div class="section">
+    <h2><span class="num">02</span> Configuración del Entorno</h2>
+
+    <p>
+      Al acceder al laboratorio mediante el botón <code>View Site</code>, se despliega un dashboard de
+      monitorización con tres paneles diferenciados: el panel de alertas activas, el registro de intentos
+      de URL Discovery y el panel de acciones de contención.
+    </p>
+
+    <h3>Dashboard de monitorización — vista inicial</h3>
+
+    <!-- MOCKUP -->
+    <div class="dashboard-mockup">
+      <div class="dash-titlebar">
+        <span class="dash-dot dash-red"></span>
+        <span class="dash-dot dash-yel"></span>
+        <span class="dash-dot dash-grn"></span>
+        <span style="margin-left:8px">FakeBank — Security Operations Dashboard</span>
+        <span style="margin-left:auto;color:rgba(56,189,248,.5)">LIVE</span>
+      </div>
+      <div class="dash-body">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">⚠ Alertas activas</div>
+        <div class="dash-alert-row">
+          <span class="dot-red"></span>
+          <span class="dash-alert-ip">32.122.195.63</span>
+          <span class="dash-alert-desc">Directory bruteforce detectado — múltiples peticiones automatizadas</span>
+          <span class="dash-alert-time">14:23:07</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin:16px 0 12px">URL Discovery Attempts</div>
+        <div class="dash-url-row">
+          <span class="dash-url-badge dash-404">404</span>
+          <span class="dash-url-path">https://fakebank.com/dashboard</span>
+          <span class="dash-url-time">14:22:51</span>
+        </div>
+        <div class="dash-url-row">
+          <span class="dash-url-badge dash-404">404</span>
+          <span class="dash-url-path">https://fakebank.com/login</span>
+          <span class="dash-url-time">14:22:55</span>
+        </div>
+        <div class="dash-url-row" style="border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.06)">
+          <span class="dash-url-badge dash-200">último</span>
+          <span class="dash-url-path" style="color:#fbbf24">https://fakebank.com/admin</span>
+          <span class="dash-url-time">14:23:07</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      <span class="alert-icon">⚠️</span>
+      <div>
+        El dashboard muestra los intentos de URL Discovery en tiempo real, permitiendo identificar
+        patrones de ataque automatizados. La última URL intentada es siempre la más relevante para
+        entender el objetivo actual del atacante.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 03 — DETECCIÓN ═══ -->
+  <div class="section">
+    <h2><span class="num">03</span> Fase 1 — Detección de Tráfico Sospechoso</h2>
+
+    <p>
+      Al revisar las alertas recientes del dashboard, se identificó de inmediato un volumen
+      anómalo de peticiones HTTP provenientes de una única dirección IP, con un patrón
+      claramente automatizado: múltiples intentos de acceso a rutas distintas en intervalos
+      regulares de milisegundos.
+    </p>
+
+    <h3>IP maliciosa identificada</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left"><span class="code-dot"></span>dashboard — alert log</div>
+      </div>
+      <pre><span class="comment"># Fuente de tráfico sospechoso:</span>
+IP: <span class="ip">32.122.195.63</span>
+Tipo de actividad: <span class="warn">Directory bruteforce (automated scan)</span>
+Peticiones/min: <span class="val">~340</span>
+User-Agent: <span class="warn">gobuster/3.x</span>
+Estado: <span class="val">ACTIVO</span></pre>
+    </div>
+
+    <div class="alert alert-danger">
+      <span class="alert-icon">🚨</span>
+      <div>
+        La IP <strong>32.122.195.63</strong> está ejecutando un ataque de fuerza bruta de directorios
+        activo contra los servidores de FakeBank. El patrón de peticiones es inequívocamente automatizado:
+        cadencia regular, múltiples rutas en secuencia y User-Agent de herramienta de escaneo.
+      </div>
+    </div>
+
+    <h3>Indicadores de Compromiso (IoC) observados</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tipo de IoC</th><th>Valor</th><th>Confianza</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>IP de origen</td>
+            <td class="ip-cell">32.122.195.63</td>
+            <td class="ok" style="color:var(--red);font-weight:700">Alta</td>
+          </tr>
+          <tr>
+            <td>User-Agent</td>
+            <td><code>gobuster/3.x</code></td>
+            <td style="color:#fbbf24;font-weight:600">Alta</td>
+          </tr>
+          <tr>
+            <td>Patrón de peticiones</td>
+            <td>Automático, cadencia regular (&lt;1s entre requests)</td>
+            <td style="color:#fbbf24;font-weight:600">Alta</td>
+          </tr>
+          <tr>
+            <td>Rutas objetivo</td>
+            <td>/dashboard, /login, /admin, /config, /backup, ...</td>
+            <td style="color:var(--green);font-weight:600">Media</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 04 — INVESTIGACIÓN ═══ -->
+  <div class="section">
+    <h2><span class="num">04</span> Fase 2 — Investigación del Ataque</h2>
+
+    <p>
+      Con la IP del atacante identificada, se procedió a analizar el registro completo de
+      intentos de URL Discovery para reconstruir el vector de ataque y determinar el objetivo
+      final del adversario.
+    </p>
+
+    <h3>Análisis del registro de URL Discovery</h3>
+    <p>
+      El atacante realizó un escaneo de directorios sistemático sobre el dominio
+      <code>fakebank.com</code>. Las rutas intentadas siguen el patrón típico de listas de
+      palabras estándar (como <code>common.txt</code> o
+      <code>directory-list-2.3-medium.txt</code> de Dirbuster), buscando recursos
+      administrativos o sensibles desprotegidos.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left"><span class="code-dot"></span>URL Discovery log — 32.122.195.63</div>
+      </div>
+      <pre><span class="comment"># Secuencia de intentos registrados (orden cronológico):</span>
+GET https://fakebank.com/dashboard      → <span class="warn">404</span>
+GET https://fakebank.com/login          → <span class="warn">404</span>
+GET https://fakebank.com/config         → <span class="warn">404</span>
+GET https://fakebank.com/backup         → <span class="warn">404</span>
+GET https://fakebank.com/api            → <span class="warn">404</span>
+GET https://fakebank.com/uploads        → <span class="warn">404</span>
+GET <span class="val">https://fakebank.com/admin</span>          → <span class="flag">⚑ ÚLTIMO INTENTO REGISTRADO</span></pre>
+    </div>
+
+    <div class="alert alert-info">
+      <span class="alert-icon">🔍</span>
+      <div>
+        La última URL intentada por el atacante fue
+        <strong style="color:#a78bfa">https://fakebank.com/admin</strong>. Esto revela el
+        objetivo del adversario: encontrar un panel de administración accesible que pudiera
+        permitir la modificación de parámetros de la aplicación —como la transferencia de
+        fondos observada en el room ofensivo anterior.
+      </div>
+    </div>
+
+    <h3>Reconstrucción del objetivo del atacante</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Hipótesis</th><th>Evidencia</th><th>Probabilidad</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Acceder a panel de admin sin autenticación</td>
+            <td>Último intento hacia <code>/admin</code></td>
+            <td style="color:var(--red);font-weight:700">Muy alta</td>
+          </tr>
+          <tr>
+            <td>Modificar transacciones bancarias</td>
+            <td>Contexto del room (FakeBank con endpoint de transferencias)</td>
+            <td style="color:#fb923c;font-weight:600">Alta</td>
+          </tr>
+          <tr>
+            <td>Exfiltración de datos de clientes</td>
+            <td>Rutas <code>/backup</code> y <code>/api</code> también intentadas</td>
+            <td style="color:#fbbf24;font-weight:600">Media</td>
+          </tr>
+          <tr>
+            <td>Escalada de privilegios post-acceso</td>
+            <td>Secuencia de rutas sugiere reconocimiento previo a explotación</td>
+            <td style="color:var(--green);">Baja (no confirmada)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 05 — CONTENCIÓN ═══ -->
+  <div class="section">
+    <h2><span class="num">05</span> Fase 3 — Contención y Remediación</h2>
+
+    <p>
+      Una vez reconstruido el vector de ataque y el objetivo del adversario, se procedió a
+      ejecutar las acciones de contención disponibles en el dashboard, siguiendo el orden
+      recomendado por el protocolo de respuesta a incidentes.
+    </p>
+
+    <div class="alert alert-warn">
+      <span class="alert-icon">⏱️</span>
+      <div>
+        <strong>Principio crítico:</strong> La contención temprana es prioritaria. Bloquear al
+        atacante antes de que alcance el recurso objetivo previene el daño mientras se continúa
+        la investigación y se aplican parches permanentes.
+      </div>
+    </div>
+
+    <h3>Acciones de contención ejecutadas</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-header-left"><span class="code-dot"></span>dashboard — acciones aplicadas (secuencia)</div>
+      </div>
+      <pre><span class="comment"># Paso 1 — Bloqueo inmediato de IP fuente:</span>
+<span class="cmd">firewall.block_ip</span>(<span class="ip">"32.122.195.63"</span>)  → <span class="ok">OK — IP bloqueada</span>
+
+<span class="comment"># Paso 2 — Limitar tasa de peticiones:</span>
+<span class="cmd">waf.rate_limit</span>(threshold=10, window="60s")   → <span class="ok">OK — Rate limiting activo</span>
+
+<span class="comment"># Paso 3 — Actualizar reglas de seguridad:</span>
+<span class="cmd">ruleset.update</span>(block_scanners=True, log_anomalies=True)  → <span class="ok">OK — Reglas aplicadas</span>
+
+<span class="comment"># Paso 4 — Medidas adicionales de hardening:</span>
+<span class="cmd">security.harden</span>(admin_auth=True, dir_listing=False)  → <span class="ok">OK — Sistema reforzado</span>
+
+<span class="comment"># Resultado:</span>
+<span class="flag">✓ SUCCESS — Sistema asegurado</span></pre>
+    </div>
+
+    <h3>Verificación de contención</h3>
+
+    <div class="flag-showcase">
+      <div class="flag-showcase-label">🚩 Flag de verificación obtenida</div>
+      <div class="flag-showcase-value">THM{FAKEBANK-SECURED}</div>
+      <div class="flag-showcase-sub">El dashboard confirmó la contención exitosa del incidente y la restauración de la seguridad del sistema.</div>
+    </div>
+
+    <h3>Métricas de la respuesta al incidente</h3>
+    <div class="score-grid">
+      <div class="score-card">
+        <span class="score-num" style="--sc-color:var(--accent)">4</span>
+        <span class="score-label">Acciones de contención</span>
+      </div>
+      <div class="score-card">
+        <span class="score-num" style="--sc-color:#fb923c">1</span>
+        <span class="score-label">IP bloqueada</span>
+      </div>
+      <div class="score-card">
+        <span class="score-num" style="--sc-color:var(--green)">100%</span>
+        <span class="score-label">Ataque neutralizado</span>
+      </div>
+      <div class="score-card">
+        <span class="score-num" style="--sc-color:var(--purple)">0</span>
+        <span class="score-label">Brechas exitosas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 06 — AMENAZAS ═══ -->
+  <div class="section">
+    <h2><span class="num">06</span> Amenazas y Vulnerabilidades Identificadas</h2>
+
+    <div class="finding-grid">
+
+      <div class="finding-card" style="--fc-color:var(--red)">
+        <div class="finding-card-id">AMENAZA-01</div>
+        <div class="finding-card-title">Fuerza Bruta de Directorios (Directory Bruteforce)</div>
+        <div class="finding-card-desc">
+          El atacante utilizó herramientas automatizadas (probablemente Gobuster o Dirb) para descubrir
+          rutas ocultas en el servidor web de FakeBank. La técnica consiste en iterar sobre un diccionario
+          de nombres de directorios comunes, solicitando cada uno al servidor y analizando el código de
+          respuesta HTTP. Cualquier ruta con código 200 o 301 revela un recurso existente.
+        </div>
+        <div class="finding-meta">
+          <div class="finding-meta-item"><span class="finding-meta-label">Evidencia: </span><span class="finding-meta-val">Último intento → <code>/admin</code></span></div>
+          <div class="finding-meta-item"><span class="finding-meta-label">Impacto: </span><span class="finding-meta-val" style="color:var(--red)">Crítico</span></div>
+          <div class="finding-meta-item"><span class="finding-meta-label">Mitigación: </span><span class="finding-meta-val">Rate limiting + bloqueo de IP</span></div>
+        </div>
+      </div>
+
+      <div class="finding-card" style="--fc-color:#fb923c">
+        <div class="finding-card-id">AMENAZA-02</div>
+        <div class="finding-card-title">Acceso No Autorizado a Recursos Sensibles</div>
+        <div class="finding-card-desc">
+          El objetivo final del atacante era acceder al panel de administración en <code>/admin</code>,
+          que probablemente no requería autenticación robusta (como se demostró en el room ofensivo
+          paralelo sobre Offensive Security Intro). Un acceso exitoso hubiera permitido modificar
+          parámetros de la aplicación, incluyendo transferencias bancarias arbitrarias.
+        </div>
+        <div class="finding-meta">
+          <div class="finding-meta-item"><span class="finding-meta-label">Impacto potencial: </span><span class="finding-meta-val" style="color:var(--red)">Compromiso total</span></div>
+          <div class="finding-meta-item"><span class="finding-meta-label">Mitigación: </span><span class="finding-meta-val">Bloqueo antes del acceso al recurso</span></div>
+        </div>
+      </div>
+
+      <div class="finding-card" style="--fc-color:#fbbf24">
+        <div class="finding-card-id">VULN-01</div>
+        <div class="finding-card-title">Exposición de Rutas Administrativas Sin Protección Suficiente</div>
+        <div class="finding-card-desc">
+          La existencia de <code>/admin</code> como ruta accesible y descubrible mediante escaneo de
+          directorios indica que el servidor no implementa protección adecuada en sus endpoints sensibles.
+          La autenticación basada únicamente en oscuridad ("nadie sabe que existe") es una práctica
+          de seguridad deficiente y fácilmente bypasseable.
+        </div>
+        <div class="finding-meta">
+          <div class="finding-meta-item"><span class="finding-meta-label">Severidad: </span><span class="finding-meta-val" style="color:#fbbf24">Media</span></div>
+          <div class="finding-meta-item"><span class="finding-meta-label">CWE: </span><span class="finding-meta-val"><code>CWE-552</code> — Files or Dirs Accessible</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <h3>Tabla de mitigaciones recomendadas</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Vulnerabilidad</th><th>Severidad</th><th>Acción inmediata</th><th>Solución a largo plazo</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Rutas administrativas expuestas</td>
+            <td class="sev-med">Media</td>
+            <td>Aplicar autenticación en <code>/admin</code></td>
+            <td>Deshabilitar directory listing, implementar ACL granular</td>
+          </tr>
+          <tr>
+            <td>Sin rate limiting en servidor web</td>
+            <td class="sev-high">Alta</td>
+            <td>WAF + rate limit activo</td>
+            <td>Implementar fail2ban, IDS/IPS perimetral</td>
+          </tr>
+          <tr>
+            <td>Sin bloqueo de User-Agents de herramientas</td>
+            <td class="sev-med">Media</td>
+            <td>Filtrar Gobuster, Nikto, sqlmap en WAF</td>
+            <td>Threat intelligence feeds para herramientas de escaneo</td>
+          </tr>
+          <tr>
+            <td>Ausencia de alertas proactivas de SIEM</td>
+            <td class="sev-high">Alta</td>
+            <td>Configurar alertas por umbral de peticiones</td>
+            <td>Implementar SIEM completo (Splunk, ELK) con reglas de correlación</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ 07 — QA ═══ -->
+  <div class="section">
+    <h2><span class="num">07</span> Respuestas al Room</h2>
+    <div class="qa-grid">
+      <div class="qa-card">
+        <span class="qa-q-label">Q1</span>
+        <span class="qa-q-text">What is the main goal of defensive security?</span>
+        <span class="qa-a-label">A</span>
+        <span class="qa-a-text">Detect and respond to attacks</span>
+      </div>
+      <div class="qa-card">
+        <span class="qa-q-label">Q2</span>
+        <span class="qa-q-text">Which source IP address is generating the suspicious traffic?</span>
+        <span class="qa-a-label">A</span>
+        <span class="qa-a-text" style="color:#fb923c">32.122.195.63</span>
+      </div>
+      <div class="qa-card">
+        <span class="qa-q-label">Q3</span>
+        <span class="qa-q-text">Copy the latest URL that the attacker has tried to find and paste it below.</span>
+        <span class="qa-a-label">A</span>
+        <span class="qa-a-text" style="color:#a78bfa">https://fakebank.com/admin</span>
+      </div>
+      <div class="qa-card">
+        <span class="qa-q-label">Q4</span>
+        <span class="qa-q-text">When the success message appears, copy the flag and paste it below.</span>
+        <span class="qa-a-label">A</span>
+        <span class="qa-a-text">THM{FAKEBANK-SECURED}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 08 — TIMELINE ═══ -->
+  <div class="section">
+    <h2><span class="num">08</span> Línea de Tiempo de la Defensa</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Fase 1 — Detección</div>
+        <div class="tl-title">Identificación de tráfico anómalo</div>
+        <div class="tl-desc">
+          El dashboard de monitorización genera una alerta por el volumen inusual de peticiones
+          HTTP provenientes de <code style="color:#fb923c">32.122.195.63</code>. Patrón automatizado
+          identificado: cadencia regular, múltiples rutas, User-Agent de herramienta de escaneo.
+        </div>
+        <span class="tl-badge tl-b-detect">IoC: 32.122.195.63</span>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="border-color:#fbbf24"></div>
+        <div class="tl-dot" style="border-color:#fbbf24; display:none"></div>
+        <div class="tl-phase" style="color:#fbbf24">Fase 2 — Investigación</div>
+        <div class="tl-title">Análisis del vector y objetivo del atacante</div>
+        <div class="tl-desc">
+          Revisión del registro de URL Discovery. Se reconstruyó la secuencia del ataque:
+          el adversario intentó múltiples rutas comunes hasta llegar al objetivo final:
+          <code style="color:#a78bfa">https://fakebank.com/admin</code>. Hipótesis confirmada:
+          intento de acceso a panel de administración desprotegido.
+        </div>
+        <span class="tl-badge tl-b-invest">Vector: Directory Bruteforce → /admin</span>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="border-color:var(--purple)"></div>
+        <div class="tl-phase" style="color:var(--purple)">Fase 3 — Contención</div>
+        <div class="tl-title">Bloqueo de IP, rate limiting y actualización de reglas</div>
+        <div class="tl-desc">
+          Se ejecutaron las cuatro acciones de contención disponibles en el dashboard en orden
+          de prioridad: bloqueo inmediato de la IP fuente, activación de rate limiting, actualización
+          del ruleset de seguridad y hardening adicional del endpoint <code>/admin</code>.
+        </div>
+        <span class="tl-badge tl-b-contain">4 acciones ejecutadas</span>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="border-color:var(--green)"></div>
+        <div class="tl-phase" style="color:var(--green)">Fase 4 — Verificación</div>
+        <div class="tl-title">Sistema asegurado — Flag obtenida</div>
+        <div class="tl-desc">
+          El dashboard confirmó la neutralización del ataque mostrando un mensaje de éxito.
+          La flag <code style="color:var(--green)">THM{FAKEBANK-SECURED}</code> valida que
+          todas las medidas de contención fueron aplicadas correctamente y el sistema está protegido.
+        </div>
+        <span class="tl-badge tl-b-verify">THM{FAKEBANK-SECURED}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 09 — LECCIONES ═══ -->
+  <div class="section">
+    <h2><span class="num">09</span> Lecciones Aprendidas</h2>
+
+    <div class="lessons-grid">
+      <div class="lesson-card">
+        <span class="lesson-icon">🔵</span>
+        <div class="lesson-title">Defensa ≠ reactividad</div>
+        <div class="lesson-desc">
+          La seguridad defensiva no espera a que el daño ocurra: monitorización continua,
+          alertas bien configuradas y respuesta proactiva son la base de un SOC efectivo.
+        </div>
+      </div>
+      <div class="lesson-card">
+        <span class="lesson-icon">🔍</span>
+        <div class="lesson-title">El log es la fuente de verdad</div>
+        <div class="lesson-desc">
+          Un ataque de directory bruteforce deja rastros evidentes en los logs de acceso:
+          cadencia automática, secuencia de rutas y User-Agent de herramienta. Monitorizar
+          es detectar.
+        </div>
+      </div>
+      <div class="lesson-card">
+        <span class="lesson-icon">⏱️</span>
+        <div class="lesson-title">Contención temprana, primero</div>
+        <div class="lesson-desc">
+          Bloquear la IP fuente antes de que alcance el recurso objetivo es prioritario.
+          La investigación forense completa puede realizarse después, sin riesgo activo.
+        </div>
+      </div>
+      <div class="lesson-card">
+        <span class="lesson-icon">🔴🔵</span>
+        <div class="lesson-title">Red Team informa al Blue Team</div>
+        <div class="lesson-desc">
+          Haber explotado directory bruteforce en el room ofensivo anterior permite comprender
+          exactamente qué busca el atacante y cómo detenerlo. El ciclo Red→Blue cierra la brecha.
+        </div>
+      </div>
+      <div class="lesson-card">
+        <span class="lesson-icon">🛡️</span>
+        <div class="lesson-title">Seguridad en capas</div>
+        <div class="lesson-desc">
+          Una sola medida no basta. El bloqueo de IP, rate limiting, autenticación y reglas
+          WAF actuando en conjunto son mucho más robustos que cualquier capa por separado.
+        </div>
+      </div>
+      <div class="lesson-card">
+        <span class="lesson-icon">📋</span>
+        <div class="lesson-title">Documentar el incidente</div>
+        <div class="lesson-desc">
+          El writeup del incidente —IoC, vector, acciones, timeline— es esencial para
+          mejorar las defensas futuras y compartir inteligencia con el equipo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 10 — CONCLUSIÓN ═══ -->
+  <div class="section">
+    <h2><span class="num">10</span> Conclusión</h2>
+
+    <p>
+      El room de Defensive Security Intro completó el ciclo de aprendizaje iniciado con el room
+      ofensivo: si en aquel laboratorio se usó <code>gobuster</code> para descubrir un endpoint
+      bancario y transferir fondos arbitrarios, en este se estuvo en la posición opuesta —detectando
+      ese mismo tipo de ataque en tiempo real y neutralizándolo.
+    </p>
+
+    <p>
+      La experiencia confirma que la comprensión del mindset ofensivo es una ventaja estratégica
+      para el defensor: saber cómo y por qué un atacante hace lo que hace permite anticipar sus
+      movimientos, configurar alertas más precisas y priorizar correctamente las acciones de contención.
+    </p>
+
+    <div class="alert alert-success">
+      <span class="alert-icon">🎉</span>
+      <div>
+        Room completado con éxito. Flag obtenida: <strong>THM{FAKEBANK-SECURED}</strong>.
+        El ataque de directory bruteforce fue detectado, investigado y neutralizado antes
+        de que el adversario alcanzara el recurso objetivo (<code>/admin</code>).
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div>Defensive Security Intro — TryHackMe Writeup</div>
+    <div>Entorno legal y controlado // <span class="hl">TryHackMe</span> · <a href="index.html">fridaynigthfunkin18-lab</a></div>
+  </footer>
+
+</div>
+</body>
+</html>
