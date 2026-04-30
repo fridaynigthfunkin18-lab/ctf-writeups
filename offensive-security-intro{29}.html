@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offensive Security Intro — Write-Up #34</title>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent:       #ff3e3e;
+      --accent-dim:   #ff3e3e55;
+      --accent-glow:  #ff3e3e22;
+      --bg:           #0a0a0c;
+      --bg2:          #111114;
+      --bg3:          #18181d;
+      --border:       #2a2a32;
+      --text:         #d4d4e0;
+      --text-muted:   #6a6a7a;
+      --text-dim:     #44444e;
+      --code-bg:      #0d0d10;
+      --success:      #00e676;
+      --warn:         #ffb300;
+      --crit:         #ff3e3e;
+      --low:          #4e9eff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* ─── SCAN LINE ─── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,62,62,0.015) 2px,
+        rgba(255,62,62,0.015) 4px
+      );
+      pointer-events: none; z-index: 1;
+    }
+
+    .wrapper {
+      position: relative; z-index: 2;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ─── BACK LINK ─── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 28px 0 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link::before { content: '←'; }
+
+    /* ─── HERO HEADER ─── */
+    .hero {
+      margin-top: 40px;
+      padding: 48px 40px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .badge {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text-muted);
+    }
+    .badge.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    h1 {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    h1 img {
+      height: 1.2em;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .hero-sub {
+      margin-top: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex; flex-wrap: wrap; gap: 20px;
+    }
+    .hero-sub span::before { content: '// '; color: var(--accent-dim); }
+
+    /* ─── STAT CARDS ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      margin-top: 32px;
+      border: 1px solid var(--border);
+    }
+    .stat-card {
+      background: var(--bg2);
+      padding: 20px 18px;
+      text-align: center;
+    }
+    .stat-card .label {
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .stat-card .value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+    .stat-card .value.green  { color: var(--success); }
+    .stat-card .value.blue   { color: var(--low); }
+    .stat-card .value.yellow { color: var(--warn); }
+
+    /* ─── SECTION TITLES ─── */
+    .section {
+      margin-top: 48px;
+    }
+    h2 {
+      font-size: 0.72rem;
+      font-family: 'Fira Code', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e8e8f0;
+      margin: 24px 0 10px;
+      letter-spacing: 0.02em;
+    }
+
+    p {
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: 14px;
+    }
+
+    /* ─── PHASE BLOCKS ─── */
+    .phase {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 28px 30px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .phase-tag {
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-glow);
+      border: 1px solid var(--accent-dim);
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+    .phase-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .phase-num {
+      font-family: 'Fira Code', monospace;
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--accent-dim);
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      line-height: 1;
+    }
+
+    /* ─── COMMAND BLOCKS ─── */
+    .cmd-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent-dim);
+      padding: 18px 20px;
+      margin: 14px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+    .cmd-block::before {
+      content: attr(data-label);
+      display: block;
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .cmd-block code {
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: #c8ffc8;
+      white-space: pre;
+      display: block;
+      line-height: 1.7;
+    }
+    .cmd-block code .prompt { color: var(--accent); user-select: none; }
+    .cmd-block code .comment { color: var(--text-dim); }
+    .cmd-block code .found   { color: var(--success); font-weight: 600; }
+    .cmd-block code .url     { color: var(--low); }
+
+    /* ─── FINDING PILLS ─── */
+    .finding-list {
+      display: flex; flex-direction: column; gap: 10px;
+      margin: 14px 0;
+    }
+    .finding {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+    }
+    .finding-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .finding-body .key {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+    .finding-body .val {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    /* ─── Q&A TABLE ─── */
+    .qa-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Fira Code', monospace;
+      font-size: 12.5px;
+      margin-top: 14px;
+    }
+    .qa-table thead tr {
+      background: var(--bg3);
+      border-bottom: 2px solid var(--accent);
+    }
+    .qa-table th {
+      padding: 12px 14px;
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+    .qa-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .qa-table tbody tr:hover { background: var(--bg3); }
+    .qa-table td {
+      padding: 14px;
+      color: var(--text);
+      vertical-align: top;
+    }
+    .qa-table td:first-child {
+      color: var(--text-muted);
+      width: 30px;
+      text-align: center;
+    }
+    .qa-table .q-text { color: #c0c0d0; font-size: 12px; }
+    .qa-table .a-text {
+      color: var(--success);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* ─── FLAG BOX ─── */
+    .flag-box {
+      margin: 32px 0;
+      padding: 32px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .flag-box::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 65%);
+    }
+    .flag-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .flag-value {
+      font-family: 'Fira Code', monospace;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 700;
+      color: var(--success);
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 30px rgba(0,230,118,0.5);
+      position: relative;
+      animation: pulse-glow 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { text-shadow: 0 0 20px rgba(0,230,118,0.4); }
+      50%       { text-shadow: 0 0 50px rgba(0,230,118,0.8); }
+    }
+    .flag-context {
+      margin-top: 10px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      position: relative;
+    }
+
+    /* ─── VULNERABILITIES ─── */
+    .vuln-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .vuln-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .vuln-id {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+    }
+    .vuln-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #e0e0ee;
+      flex: 1;
+      margin: 0 16px;
+    }
+    .severity {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border: 1px solid;
+    }
+    .severity.critica  { color: var(--crit);    border-color: var(--crit);    background: rgba(255,62,62,0.1); }
+    .severity.alta     { color: var(--warn);    border-color: var(--warn);    background: rgba(255,179,0,0.1); }
+    .severity.baja     { color: var(--low);     border-color: var(--low);     background: rgba(78,158,255,0.1); }
+    .vuln-body {
+      padding: 18px;
+    }
+    .vuln-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px 16px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+    }
+    .vuln-row .lbl {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding-top: 2px;
+    }
+    .vuln-row .val { color: var(--text); }
+    .vuln-row .mitigation { color: var(--success); }
+
+    /* ─── KILL CHAIN ─── */
+    .kill-chain {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 14px 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .kc-step {
+      flex: 1;
+      min-width: 120px;
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      border-right: 1px solid var(--border);
+    }
+    .kc-step:last-child { border-right: none; }
+    .kc-step::after {
+      content: '▶';
+      position: absolute;
+      right: -8px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-dim);
+      font-size: 10px;
+      z-index: 2;
+    }
+    .kc-step:last-child::after { display: none; }
+    .kc-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .kc-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .kc-step.active {
+      background: var(--accent-glow);
+    }
+    .kc-step.active .kc-label { color: var(--success); }
+
+    /* ─── TOOLS ─── */
+    .tools-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .tool-pill {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      padding: 7px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .tool-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ─── LESSONS ─── */
+    .lesson {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+    .lesson-num {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-glow);
+      border: 1px solid var(--accent-dim);
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .lesson-text {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .lesson-text strong { color: var(--accent); }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-left {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .footer-left strong { color: var(--text-muted); }
+    .footer-right {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── HIGHLIGHT INLINE ─── */
+    .hl { color: var(--accent); font-weight: 600; }
+    .hl-green { color: var(--success); font-weight: 600; }
+    .hl-blue  { color: var(--low); }
+    code.inline {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 7px;
+      color: #c8ffc8;
+    }
+
+    /* ─── INFO BOX ─── */
+    .info-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--low);
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    .info-box .title {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--low);
+      margin-bottom: 8px;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in:nth-child(1) { animation-delay: 0.05s; }
+    .fade-in:nth-child(2) { animation-delay: 0.12s; }
+    .fade-in:nth-child(3) { animation-delay: 0.19s; }
+    .fade-in:nth-child(4) { animation-delay: 0.26s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- BACK LINK -->
+  <a href="index.html" class="back-link"> Volver al índice</a>
+
+  <!-- HERO -->
+  <header class="hero fade-in">
+    <div class="hero-meta">
+      <span class="badge accent">Write-Up #34</span>
+      <span class="badge">TryHackMe</span>
+      <span class="badge">Fácil</span>
+      <span class="badge">Web</span>
+      <span class="badge">Directorios</span>
+      <span class="badge">Metodología AXIOM</span>
+    </div>
+
+    <h1>
+      <img src="img/offensive-security-intro.png" alt="Offensive Security Intro" onerror="this.style.display='none'"/>
+      Offensive Security Intro
+    </h1>
+
+    <div class="hero-sub">
+      <span>30 Abril 2026</span>
+      <span>Target: FakeBank (http://fakebank.thm)</span>
+      <span>Flags: 1 / 1</span>
+      <span>Pwned ✓</span>
+    </div>
+  </header>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid fade-in">
+    <div class="stat-card">
+      <div class="label">Dificultad</div>
+      <div class="value">FÁCIL</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Vector</div>
+      <div class="value blue">DIR BRUTE</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Preguntas</div>
+      <div class="value green">4 / 4</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Herramienta</div>
+      <div class="value yellow">dirb</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Severidad max</div>
+      <div class="value">CRÍTICA</div>
+    </div>
+  </div>
+
+  <!-- RESUMEN EJECUTIVO -->
+  <section class="section fade-in">
+    <h2>01 · Resumen Ejecutivo</h2>
+    <p>
+      Este room introductorio de TryHackMe simula el compromiso de una aplicación bancaria ficticia
+      llamada <span class="hl">FakeBank</span>. El objetivo es experimentar de primera mano qué significa
+      la seguridad ofensiva: pensar como un atacante para identificar fallos antes de que los actores
+      maliciosos lo hagan.
+    </p>
+    <p>
+      Utilizando un ataque de <strong>fuerza bruta de directorios</strong> con la herramienta
+      <code class="inline">dirb</code>, se descubrió un panel de transferencias bancarias
+      (<code class="inline">/bank-transfer</code>) completamente desprotegido. Sin ningún tipo de
+      autenticación, fue posible realizar un depósito fraudulento en la cuenta objetivo
+      <span class="hl">#8881</span>, haciendo positivo su saldo y revelando la flag del laboratorio.
+    </p>
+
+    <div class="info-box">
+      <div class="title">Contexto</div>
+      El laboratorio corre en un entorno web aislado dentro de TryHackMe. La terminal web
+      tiene <code class="inline">dirb</code> preinstalado. No se requirieron herramientas externas.
+    </div>
+  </section>
+
+  <!-- KILL CHAIN -->
+  <section class="section">
+    <h2>02 · Kill Chain</h2>
+    <div class="kill-chain">
+      <div class="kc-step">
+        <div class="kc-label">Recon</div>
+        <div class="kc-desc">Inspección visual de FakeBank, URL base y cuenta 8881</div>
+      </div>
+      <div class="kc-step">
+        <div class="kc-label">Discovery</div>
+        <div class="kc-desc">dirb revela <code class="inline">/bank-transfer</code></div>
+      </div>
+      <div class="kc-step">
+        <div class="kc-label">Exploitation</div>
+        <div class="kc-desc">Acceso sin auth al panel + depósito fraudulento</div>
+      </div>
+      <div class="kc-step active">
+        <div class="kc-label">Flag</div>
+        <div class="kc-desc">BANK-HACKED ✓</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FASES DE ATAQUE -->
+  <section class="section">
+    <h2>03 · Fases de Ataque</h2>
+
+    <!-- FASE 1 -->
+    <div class="phase">
+      <span class="phase-num">01</span>
+      <div class="phase-header">
+        <span class="phase-tag">Recon</span>
+        <span class="phase-title">Reconocimiento Inicial — Inspección de FakeBank</span>
+      </div>
+      <p>
+        Se cargó el laboratorio usando el botón <em>"View Site"</em> de TryHackMe, que abrió la interfaz
+        de FakeBank en el navegador integrado. Se procedió a una inspección visual sistemática de la aplicación.
+      </p>
+      <p>
+        La landing page de FakeBank mostraba una lista de cuentas bancarias con sus saldos actuales.
+        Visualmente, la aplicación imita una banca en línea legítima, con secciones de transferencia
+        y consulta de saldo. Sin embargo, a primera vista carece de elementos de seguridad visibles
+        como formularios de login, tokens CSRF o restricciones de navegación.
+      </p>
+      <div class="finding-list">
+        <div class="finding">
+          <div class="finding-icon">🎯</div>
+          <div class="finding-body">
+            <div class="key">URL base identificada</div>
+            <div class="val"><code class="inline">http://fakebank.thm</code> — dominio interno del laboratorio</div>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-icon">💳</div>
+          <div class="finding-body">
+            <div class="key">Cuenta objetivo</div>
+            <div class="val">Número <strong class="hl">#8881</strong> visible en la interfaz principal sin autenticación previa</div>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-icon">⚠️</div>
+          <div class="finding-body">
+            <div class="key">Hipótesis inicial</div>
+            <div class="val">La ausencia de login implica que funciones administrativas pueden estar expuestas en rutas no enlazadas. Candidato a fuerza bruta de directorios.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 2 -->
+    <div class="phase">
+      <span class="phase-num">02</span>
+      <div class="phase-header">
+        <span class="phase-tag">Discovery</span>
+        <span class="phase-title">Directory Bruteforce con dirb</span>
+      </div>
+      <p>
+        Con la URL base identificada, se ejecutó <code class="inline">dirb</code> desde la terminal web
+        integrada del laboratorio. Esta herramienta realiza fuerza bruta sobre rutas del servidor
+        usando un diccionario de palabras comunes para descubrir recursos ocultos.
+      </p>
+
+      <div class="cmd-block" data-label="Terminal — Ejecución de dirb">
+        <code><span class="prompt">$ </span>dirb http://fakebank.thm
+
+<span class="comment">-----------------
+DIRB v2.22    
+By The Dark Raver
+-----------------</span>
+
+START_TIME: Thu Apr 30 2026
+URL_BASE: http://fakebank.thm/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+
+<span class="comment">-----------------
+
+GENERATED WORDS: 4612</span>
+
+<span class="comment">---- Scanning URL: http://fakebank.thm/ ----</span>
+<span class="found">+ http://fakebank.thm/images (CODE:301|SIZE:315)</span>
+<span class="found">+ http://fakebank.thm/bank-transfer (CODE:200|SIZE:2048)</span>
+
+<span class="comment">-----------------
+END_TIME: ...
+DOWNLOADED: 4612 - FOUND: 2
+-----------------</span></code>
+      </div>
+
+      <div class="finding-list">
+        <div class="finding">
+          <div class="finding-icon">📁</div>
+          <div class="finding-body">
+            <div class="key">Ruta 1: /images</div>
+            <div class="val">Directorio de recursos estáticos. Código <code class="inline">301</code> — redirección. Baja relevancia ofensiva.</div>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-icon">🔓</div>
+          <div class="finding-body">
+            <div class="key">Ruta 2: /bank-transfer — HALLAZGO CRÍTICO</div>
+            <div class="val">Panel de transferencias bancarias accesible con código <code class="inline">200 OK</code> sin ningún tipo de autenticación ni token de sesión. Vector de explotación confirmado.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 3 -->
+    <div class="phase">
+      <span class="phase-num">03</span>
+      <div class="phase-header">
+        <span class="phase-tag">Exploitation</span>
+        <span class="phase-title">Acceso al Panel Oculto y Modificación de Saldo</span>
+      </div>
+      <p>
+        Se navegó directamente a <code class="inline">http://fakebank.thm/bank-transfer</code>.
+        La página reveló un formulario de transferencia/depósito sin ningún control de acceso previo.
+        Cualquier usuario (autenticado o no) puede interactuar con esta funcionalidad.
+      </p>
+
+      <h3>Estructura del formulario expuesto</h3>
+      <div class="finding-list">
+        <div class="finding">
+          <div class="finding-icon">🔽</div>
+          <div class="finding-body">
+            <div class="key">Campo: Selector de cuenta</div>
+            <div class="val">Desplegable con la opción <strong class="hl">#8881</strong> — la cuenta objetivo identificada en la fase de recon.</div>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-icon">🔢</div>
+          <div class="finding-body">
+            <div class="key">Campo: Cantidad a depositar</div>
+            <div class="val">Campo libre sin validación de límites, origen de fondos, ni autorización dual. Se introdujo <strong class="hl">2000</strong> (valor arbitrario suficiente para positivizar el saldo).</div>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="finding-icon">✅</div>
+          <div class="finding-body">
+            <div class="key">Botón: Deposit Money</div>
+            <div class="val">Al hacer clic, la transacción se procesa de inmediato sin confirmación, OTP ni segundo factor.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-block" data-label="Interacción con el formulario">
+        <code><span class="comment"># Navegación al panel desprotegido</span>
+<span class="url">http://fakebank.thm/bank-transfer</span>
+
+<span class="comment"># Parámetros enviados al hacer submit</span>
+account  = <span class="found">8881</span>
+amount   = <span class="found">2000</span>
+action   = deposit
+
+<span class="comment"># Resultado:</span>
+→ Saldo de la cuenta 8881 pasa a positivo
+→ Aparece pop-up verde con texto: <span class="found">BANK-HACKED</span></code>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLAG -->
+  <div class="flag-box">
+    <div class="flag-label">🚩 Flag capturada</div>
+    <div class="flag-value">BANK-HACKED</div>
+    <div class="flag-context">Cuenta #8881 · FakeBank · /bank-transfer · Depósito fraudulento</div>
+  </div>
+
+  <!-- Q&A -->
+  <section class="section">
+    <h2>04 · Respuestas del Room</h2>
+    <table class="qa-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Pregunta</th>
+          <th>Respuesta</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td class="q-text">Which term describes simulating a hacker's actions to find system vulnerabilities?</td>
+          <td class="a-text">Offensive Security</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td class="q-text">What is the bank account number shown in the FakeBank application?</td>
+          <td class="a-text">8881</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td class="q-text">Dirb found one URL, http://fakebank.thm/images. What is the other hidden URL?</td>
+          <td class="a-text">http://fakebank.thm/bank-transfer</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td class="q-text">When your balance turns positive, a pop-up with green text appears. Enter the green words as the answer (ALL CAPS).</td>
+          <td class="a-text">BANK-HACKED</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- VULNERABILIDADES -->
+  <section class="section">
+    <h2>05 · Vulnerabilidades Identificadas</h2>
+
+    <div class="vuln-card">
+      <div class="vuln-header">
+        <span class="vuln-id">VULN-01</span>
+        <span class="vuln-title">Panel administrativo oculto sin autenticación</span>
+        <span class="severity critica">Crítica</span>
+      </div>
+      <div class="vuln-body">
+        <div class="vuln-row">
+          <span class="lbl">Descripción</span>
+          <span class="val">El endpoint <code class="inline">/bank-transfer</code> no requiere ningún tipo de login, sesión válida ni token de autorización. Es accesible directamente por cualquier cliente HTTP.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Impacto</span>
+          <span class="val">Un atacante puede depositar o retirar fondos de cualquier cuenta del banco sin restricción alguna, comprometiendo la integridad financiera de toda la aplicación.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">CWE</span>
+          <span class="val">CWE-306 — Missing Authentication for Critical Function</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Mitigación</span>
+          <span class="val mitigation">Implementar middleware de autenticación obligatorio en todas las rutas de gestión financiera. Aplicar control de acceso basado en roles (RBAC): solo usuarios con perfil "admin" o "staff" deben acceder a transferencias.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-header">
+        <span class="vuln-id">VULN-02</span>
+        <span class="vuln-title">Exposición de directorios internos por directory listing / rutas predecibles</span>
+        <span class="severity baja">Baja</span>
+      </div>
+      <div class="vuln-body">
+        <div class="vuln-row">
+          <span class="lbl">Descripción</span>
+          <span class="val"><code class="inline">dirb</code> descubrió en segundos dos rutas internas (<code class="inline">/images</code> y <code class="inline">/bank-transfer</code>) usando únicamente un diccionario de palabras comunes.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Impacto</span>
+          <span class="val">Facilita la fase de Discovery del atacante, reduciendo el tiempo necesario para identificar superficies de ataque ocultas.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">CWE</span>
+          <span class="val">CWE-548 — Exposure of Information Through Directory Listing</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Mitigación</span>
+          <span class="val mitigation">Deshabilitar directory listing en la configuración del servidor web. Usar rutas con tokens aleatorios o segmentos no predecibles para funcionalidades sensibles.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vuln-card">
+      <div class="vuln-header">
+        <span class="vuln-id">VULN-03</span>
+        <span class="vuln-title">Validación insuficiente de transacciones financieras</span>
+        <span class="severity alta">Alta</span>
+      </div>
+      <div class="vuln-body">
+        <div class="vuln-row">
+          <span class="lbl">Descripción</span>
+          <span class="val">El formulario de depósito acepta cualquier valor positivo sin verificar límites, disponibilidad de fondos de origen, autenticación del solicitante ni autorización secundaria.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Impacto</span>
+          <span class="val">Manipulación arbitraria de saldos bancarios. En un sistema real equivaldría a fraude financiero directo.</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">CWE</span>
+          <span class="val">CWE-20 — Improper Input Validation</span>
+        </div>
+        <div class="vuln-row">
+          <span class="lbl">Mitigación</span>
+          <span class="val mitigation">Validar montos server-side, establecer límites diarios, verificar fondos disponibles en la cuenta origen, implementar autorización dual (4-eyes principle) para transacciones superiores a cierto umbral.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERRAMIENTAS -->
+  <section class="section">
+    <h2>06 · Herramientas Utilizadas</h2>
+    <div class="tools-row">
+      <div class="tool-pill"><span class="dot"></span>Navegador Web (integrado en TryHackMe)</div>
+      <div class="tool-pill"><span class="dot"></span>Terminal Web (integrada en TryHackMe)</div>
+      <div class="tool-pill"><span class="dot"></span>dirb v2.22 (preinstalado)</div>
+    </div>
+    <p style="margin-top:12px;">
+      No se utilizaron herramientas externas (Kali, Burp Suite, etc.). El laboratorio provee todo
+      lo necesario en un entorno de navegador autocontenido, lo que lo hace accesible para
+      cualquier nivel de experiencia.
+    </p>
+  </section>
+
+  <!-- LECCIONES -->
+  <section class="section">
+    <h2>07 · Lecciones Aprendidas</h2>
+
+    <div class="lesson">
+      <div class="lesson-num">01</div>
+      <div class="lesson-text">
+        <strong>La seguridad ofensiva es pensar como el atacante.</strong> Identificar los mismos fallos
+        que explotaría un actor malicioso, pero en un entorno controlado y con autorización explícita,
+        es la esencia del ethical hacking.
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="lesson-num">02</div>
+      <div class="lesson-text">
+        <strong>Los endpoints ocultos no son endpoints seguros.</strong> Si una ruta no está enlazada
+        en la UI pero existe en el servidor, herramientas como <code class="inline">dirb</code> la
+        encontrarán en minutos. La seguridad por oscuridad no es una estrategia válida.
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="lesson-num">03</div>
+      <div class="lesson-text">
+        <strong>La autenticación es la primera línea de defensa.</strong> Cualquier funcionalidad
+        que pueda modificar datos sensibles debe estar protegida por autenticación y autorización,
+        independientemente de si es "visible" para el usuario o no.
+      </div>
+    </div>
+    <div class="lesson">
+      <div class="lesson-num">04</div>
+      <div class="lesson-text">
+        <strong>La validación server-side es no negociable.</strong> Nunca confiar en el cliente
+        para validar montos, permisos o identidad. Toda la lógica de negocio sensible debe
+        validarse en el backend.
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCLUSIÓN -->
+  <section class="section">
+    <h2>08 · Conclusión</h2>
+    <p>
+      <em>Offensive Security Intro</em> cumple su propósito pedagógico con efectividad: en minutos
+      demuestra que incluso un atacante con conocimientos básicos puede comprometer un sistema
+      si los controles de acceso fundamentales no están en su lugar. La cadena de ataque —
+      recon visual → fuerza bruta de directorios → acceso sin autenticación → modificación
+      de datos — es representativa de vulnerabilidades reales que aparecen en aplicaciones
+      web de producción.
+    </p>
+    <p>
+      Todas las preguntas del room fueron respondidas correctamente y la única flag disponible
+      (<span class="hl-green">BANK-HACKED</span>) fue capturada. La sesión se completó sin
+      incidentes dentro del entorno legal y controlado de TryHackMe.
+    </p>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">
+      <strong>Offensive Security Intro</strong> · TryHackMe · Entorno legal y controlado
+    </div>
+    <div class="footer-right">Write-Up #34 · 30 Abril 2026</div>
+  </footer>
+
+</div>
+</body>
+</html>
