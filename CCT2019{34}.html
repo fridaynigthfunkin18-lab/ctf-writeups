@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCT2019 — TryHackMe Writeup</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --accent: #00ff9d;
+    --accent2: #ff6b6b;
+    --accent3: #4e9eff;
+    --text: #c9d8f0;
+    --text-muted: #5a7298;
+    --text-bright: #eef4ff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,157,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,157,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero {
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge-platform { background: rgba(78,158,255,0.15); color: var(--accent3); border: 1px solid rgba(78,158,255,0.3); }
+  .badge-medium   { background: rgba(255,165,0,0.12); color: #ffaa00; border: 1px solid rgba(255,165,0,0.3); }
+  .badge-linux    { background: rgba(0,255,157,0.1); color: var(--accent); border: 1px solid rgba(0,255,157,0.25); }
+  .badge-docker   { background: rgba(0,157,255,0.1); color: #00b4d8; border: 1px solid rgba(0,157,255,0.25); }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  h1 .accent { color: var(--accent); }
+
+  .hero-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .hero-meta span::before {
+    content: '// ';
+    color: var(--accent);
+    opacity: 0.5;
+  }
+
+  .killchain {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin: 40px 0;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+
+  .killchain-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .chain {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .chain-step {
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.2);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .chain-arrow { color: var(--text-muted); font-size: 16px; }
+
+  .section {
+    margin-bottom: 52px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2 .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(0,255,157,0.1);
+    border: 1px solid rgba(0,255,157,0.2);
+    padding: 2px 10px;
+    border-radius: 2px;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent3);
+    margin: 28px 0 12px;
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); font-size: 0.97rem; }
+
+  .code-block {
+    background: #080d16;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .code-header::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.6;
+  }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #a8c7f0;
+  }
+
+  .cmd { color: #7dd3fc; }
+  .flag-val { color: var(--accent); font-weight: 600; }
+  .comment { color: #3d5a7a; }
+  .string { color: #86efac; }
+  .warn { color: #fbbf24; }
+  .err { color: var(--accent2); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: rgba(0,255,157,0.07);
+    border: 1px solid rgba(0,255,157,0.15);
+    padding: 1px 7px;
+    border-radius: 2px;
+    color: var(--accent);
+  }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--accent3);
+    text-align: left;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+
+  td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  td.flag-cell {
+    color: var(--accent);
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .alert {
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin: 16px 0;
+    font-size: 0.93rem;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .alert-warn { background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.25); color: #fcd34d; }
+  .alert-info { background: rgba(78,158,255,0.07); border: 1px solid rgba(78,158,255,0.25); color: #93c5fd; }
+  .alert-success { background: rgba(0,255,157,0.06); border: 1px solid rgba(0,255,157,0.2); color: var(--accent); }
+  .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .flags-grid { display: grid; gap: 14px; margin-top: 16px; }
+
+  .flag-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .flag-card:hover { background: var(--surface2); border-left-color: #00ffbb; }
+
+  .flag-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .flag-path {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+
+  .flag-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .flag-via {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.2);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  td.sev-critical { color: var(--accent2); font-weight: 700; }
+  td.sev-high     { color: #fb923c; font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    margin-top: 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer span { color: var(--accent); }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.1s; }
+  .section:nth-child(4) { animation-delay: 0.15s; }
+  .section:nth-child(5) { animation-delay: 0.2s; }
+  .section:nth-child(6) { animation-delay: 0.25s; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .badge-insane  { background: rgba(255,0,60,0.15); color: #ff3d6b; border: 1px solid rgba(255,0,60,0.3); }
+  .badge-windows { background: rgba(0,120,215,0.12); color: #4e9eff; border: 1px solid rgba(0,120,215,0.3); }
+  .badge-crypto  { background: rgba(192,132,252,0.12); color: #c084fc; border: 1px solid rgba(192,132,252,0.3); }
+  .badge-forensics { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--text-muted);text-decoration:none;margin-bottom:24px;padding:8px 16px;border:1px solid var(--border);border-radius:4px;">
+    &larr; Volver al &iacute;ndice
+  </a>
+
+  <header class="hero">
+    <div class="badge-row">
+      <span class="badge badge-platform">TryHackMe</span>
+      <span class="badge badge-insane">Dificultad: Insane</span>
+      <span class="badge badge-forensics">Forensics</span>
+      <span class="badge badge-crypto">Crypto</span>
+      <span class="badge badge-windows">RE / PCAP</span>
+    </div>
+    <h1>
+      <img src="img/CCT2019.jpeg" alt="CCT2019" style="height:1.2em; vertical-align:middle; margin-right:8px;" />
+      CCT<span class="accent">2019</span>
+    </h1>
+    <div class="hero-meta">
+      <span>Plataforma: TryHackMe</span>
+      <span>Categor&iacute;a: Misc / Insane</span>
+      <span>Fecha: 09 Mayo 2026</span>
+    </div>
+  </header>
+
+  <div class="killchain">
+    <div class="killchain-title">&starf; Challenge Chain Completa</div>
+    <div class="chain">
+      <span class="chain-step">USB PCAP</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">cryptcat decrypt</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">IRC Bot RE</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">.NET IL Deobfuscation</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">7-Layer Stego</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">Enigma M4</span>
+      <span class="chain-arrow">&rarr;</span>
+      <span class="chain-step">Dvorak + Rail Fence + RLE &#x1F3C6;</span>
+    </div>
+  </div>
+
+  <!-- 01 EXTRACCIÓN -->
+  <div class="section">
+    <h2><span class="num">01</span> Extracci&oacute;n Inicial</h2>
+    <h3>// USB PCAP &rarr; ZIP &rarr; pcap_chal.pcap</h3>
+    <p>El archivo inicial es una captura USB (<code>pcap2_*.pcapng</code>) que contiene transferencia de un ZIP. Al extraer el ZIP obtenemos el pcap real del desaf&iacute;o.</p>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer pcap del USB</div>
+      <pre><span class="cmd">tshark</span> -r pcap2_*.pcapng -Y <span class="string">"usb.transfer_type==0x03"</span> -T fields -e usb.capdata | ...
+<span class="cmd">unzip</span> extracted.zip
+<span class="comment"># &rarr; pcap_chal.pcap (4,588 paquetes)</span></pre>
+    </div>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <div>El pcap contiene conversaciones ICMP ocultas, tr&aacute;fico HTTP a fotoforensics.com, y un stream TCP cifrado con <code>cryptcat</code> en el puerto 4444.</div>
+    </div>
+  </div>
+
+  <!-- 02 TASK 1 PCAP -->
+  <div class="section">
+    <h2><span class="num">02</span> Task 1 &mdash; PCAP (IRC Bot)</h2>
+    <h3>// Conversaci&oacute;n ICMP oculta</h3>
+    <p>Los paquetes ICMP contienen una conversaci&oacute;n que revela el uso de <code>cryptcat</code> con key <code>BER5348833</code> en el puerto 4444.</p>
+    <div class="code-block">
+      <div class="code-header">datos clave del ICMP</div>
+      <pre><span class="comment"># Key de cryptcat (Twofish):</span> <span class="flag-val">BER5348833</span>
+<span class="comment"># Puerto:</span> 4444</pre>
+    </div>
+    <h3>// Descifrado del stream TCP</h3>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer y descifrar</div>
+      <pre><span class="cmd">tshark</span> -r pcap_chal.pcap -qz follow,tcp,raw,49 | xxd -r -p &gt; stream49.bin
+<span class="cmd">cryptcat</span> -k BER5348833 -l -p 9999 &lt; stream49.bin
+<span class="comment"># Resultado: ELF 64-bit &mdash; IRC Bot</span></pre>
+    </div>
+    <h3>// An&aacute;lisis del IRC Bot</h3>
+    <p>El binario ELF es un bot IRC que se conecta al canal <code>#flag</code> y env&iacute;a la flag codificada con ROT13 variante + string reverse.</p>
+    <div class="code-block">
+      <div class="code-header">output &mdash; flag decodificada</div>
+      <pre><span class="flag-val">CCT{h3's_a_pc@p_w1z@rd_th3re_h4s_g0t_to_6e_a_7w1st}</span></pre>
+    </div>
+  </div>
+
+  <!-- 03 TASK 2 RE -->
+  <div class="section">
+    <h2><span class="num">03</span> Task 2 &mdash; Reverse Engineering (.NET)</h2>
+    <h3>// Archivo: re3_*.exe (Dotfuscator)</h3>
+    <p>PE32 .NET ofuscado con Dotfuscator. GUI con 4 scrollbars que deben satisfacer ecuaciones simult&aacute;neas.</p>
+    <div class="code-block">
+      <div class="code-header">ecuaciones del validador goodBoy()</div>
+      <pre><span class="warn">a + b + c + d = 711</span>
+<span class="warn">a &times; b &times; c &times; d = 711,000,000</span>
+<span class="warn">a &gt; b &gt; c &gt; d</span>
+
+<span class="comment"># Soluci&oacute;n &uacute;nica:</span>
+a = <span class="flag-val">316</span>, b = <span class="flag-val">150</span>, c = <span class="flag-val">125</span>, d = <span class="flag-val">120</span></pre>
+    </div>
+    <h3>// Generaci&oacute;n de la key</h3>
+    <div class="code-block">
+      <div class="code-header">l&oacute;gica IL desensamblada</div>
+      <pre><span class="comment"># Constructor: field_c = 177, byteA = [32 bytes est&aacute;ticos]</span>
+<span class="comment"># goodBoy(): byteA[i] XOR (field_c XOR b)</span>
+<span class="comment">#          = byteA[i] XOR (177 XOR 150)</span>
+<span class="comment">#          = byteA[i] XOR 39</span>
+<span class="comment"># Resultado &rarr; hex string de 32 caracteres</span></pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header">output &mdash; 32-char hex key</div>
+      <pre><span class="flag-val">31C02DCFDE2FCF727016E2A7054B6DA5</span></pre>
+    </div>
+  </div>
+
+  <!-- 04 TASK 3 FORENSICS -->
+  <div class="section">
+    <h2><span class="num">04</span> Task 3 &mdash; Forensics (Onion of Obfuscation)</h2>
+    <div class="alert alert-warn">
+      <span class="alert-icon">&#x26A0;&#xFE0F;</span>
+      <div>Este desaf&iacute;o tiene <strong>7 capas</strong> de ofuscaci&oacute;n anidadas. Cada capa revela la clave para la siguiente.</div>
+    </div>
+
+    <h3>// Capa 1 &mdash; EXIF Morse Code</h3>
+    <p>La imagen JPEG muestra una m&aacute;quina Enigma. El EXIF contiene c&oacute;digo Morse en la descripci&oacute;n y el artista es <code>Ed</code>.</p>
+    <div class="code-block">
+      <div class="code-header">exiftool &mdash; metadata</div>
+      <pre>Artist: <span class="warn">Ed</span>
+Description (Morse): .--- ..- ... - .- .-- .- .-. -- ..- .--. .-. .. --. .... - ..--..
+<span class="comment"># Decodificado:</span> <span class="flag-val">JUSTAWARMUPRIGHT?</span></pre>
+    </div>
+
+    <h3>// Capa 2 &mdash; ZIP embebido en JPEG</h3>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer ZIP tras EOI del JPEG</div>
+      <pre><span class="cmd">binwalk</span> for1_*.jpeg
+<span class="comment"># ZIP detectado al offset 29202</span>
+<span class="cmd">dd</span> if=for1_*.jpeg bs=1 skip=29202 of=embedded.zip
+<span class="cmd">unzip</span> -P <span class="string">"justawarmupright?"</span> embedded.zip
+<span class="comment"># &rarr; fakeflag.txt</span></pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header">fakeflag.txt &mdash; pista Matrix</div>
+      <pre>I didn't say it would be easy, Neo. Peer into the Matrix.
+&mdash; Morpheus
+PW: <span class="flag-val">Z10N0101</span></pre>
+    </div>
+
+    <h3>// Capa 3 &mdash; Texto oculto en imagen</h3>
+    <p>Aumentando el contraste de la imagen se revela texto blanco casi invisible en la parte superior:</p>
+    <div class="code-block">
+      <div class="code-header">texto oculto (contrast enhancement)</div>
+      <pre><span class="flag-val">0ni0n_0f_0bfu5c@ti0n</span>
+<span class="comment"># = "Onion of Obfuscation"</span></pre>
+    </div>
+
+    <h3>// Capa 4 &mdash; Steghide</h3>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer datos con steghide</div>
+      <pre><span class="cmd">steghide</span> extract -sf for1_*.jpeg -p <span class="string">"Z10N0101"</span>
+<span class="comment"># &rarr; ZIP con: cipher.txt, config.txt, flag.zip</span></pre>
+    </div>
+
+    <h3>// Capa 5 &mdash; ZIP interno</h3>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer con texto oculto como password</div>
+      <pre><span class="cmd">unzip</span> -P <span class="string">"0ni0n_0f_0bfu5c@ti0n"</span> inner.zip
+<span class="comment"># cipher.txt:</span> <span class="warn">JHSL PGLW YSQO DQVL PFAO TPCY KPUD TF</span>
+<span class="comment"># config.txt:</span> <span class="warn">C G. VI. VII. VIII. AMTU RING AM BY CH DR EL FX GO IV JN KU PS QT WZ</span></pre>
+    </div>
+
+    <h3>// Capa 6 &mdash; Enigma M4 (cryptii.com)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Par&aacute;metro</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Modelo</td><td>Enigma M4 "Shark"</td></tr>
+          <tr><td>Reflector</td><td>UKW C thin</td></tr>
+          <tr><td>Rotor 1</td><td>Gamma &mdash; Pos: A (1) &mdash; Ring: R (18)</td></tr>
+          <tr><td>Rotor 2</td><td>VI &mdash; Pos: M (13) &mdash; Ring: I (9)</td></tr>
+          <tr><td>Rotor 3</td><td>VII &mdash; Pos: T (20) &mdash; Ring: N (14)</td></tr>
+          <tr><td>Rotor 4</td><td>VIII &mdash; Pos: U (21) &mdash; Ring: G (7)</td></tr>
+          <tr><td>Plugboard</td><td>AM BY CH DR EL FX GO IV JN KU PS QT WZ</td></tr>
+          <tr><td style="color:var(--accent);font-weight:700">Resultado</td><td class="flag-cell">CTFFORENSICSISNOTREALFORENSICS</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>// Capa 7 &mdash; Flag final</h3>
+    <div class="code-block">
+      <div class="code-header">bash &mdash; extraer flag.zip</div>
+      <pre><span class="cmd">unzip</span> -P <span class="string">"ctfforensicsisnotrealforensics"</span> flag.zip
+<span class="cmd">cat</span> flag.txt
+<span class="flag-val">CCT{Well_that_wasn't_such_a_chore_now_was_it?}</span></pre>
+    </div>
+  </div>
+
+  <!-- 05 TASK 4 CRYPTO -->
+  <div class="section">
+    <h2><span class="num">05</span> Task 4 &mdash; Cryptography</h2>
+
+    <h3>// 4a &mdash; Sustituci&oacute;n Monoalfab&eacute;tica (Dvorak)</h3>
+    <p>Cifrado de sustituci&oacute;n basado en el layout de teclado <code>Dvorak</code>. El texto descifrado pide "the name of the layout".</p>
+    <div class="code-block">
+      <div class="code-header">soluci&oacute;n crypto1a</div>
+      <pre><span class="comment"># Layout identificado:</span> <span class="warn">Dvorak</span>
+<span class="comment"># Password para crypto1a.zip:</span> <span class="string">"dvorakdvorakdvorak"</span> <span class="comment">(3x)</span>
+<span class="comment"># Flag:</span> <span class="flag-val">CCT{Actu411y_a_w@rmup}</span></pre>
+    </div>
+
+    <h3>// 4b &mdash; Rail Fence Cipher</h3>
+    <p>Hint: "riding a rail or five... from the bottom up". Rail Fence con 5 ra&iacute;les, lectura bottom-up.</p>
+    <div class="code-block">
+      <div class="code-header">soluci&oacute;n crypto1b</div>
+      <pre><span class="comment"># Cipher:</span> Rail Fence, <span class="warn">5 ra&iacute;les, bottom-up</span>
+<span class="comment"># Referencia:</span> Charlotte's Web (1973) &mdash; ganso deletrea "terrific"
+<span class="comment"># Password:</span> <span class="string">"teerrrriiffiicccccc"</span>
+<span class="comment"># Flag:</span> <span class="flag-val">CCT{th@t_w4s_th4_ea5y_bu770n!}</span></pre>
+    </div>
+
+    <h3>// 4c &mdash; Run-Length Encoding</h3>
+    <p>Secuencia de d&iacute;gitos 1-6. Cada d&iacute;gito = cantidad de bits consecutivos alternando 0/1 (empezando con 0).</p>
+    <div class="code-block">
+      <div class="code-header">python &mdash; decodificar RLE binario</div>
+      <pre><span class="cmd">binary</span> = []
+current_bit = <span class="warn">0</span>
+<span class="cmd">for</span> ch <span class="cmd">in</span> crypto1c:
+    binary.extend([current_bit] * int(ch))
+    current_bit = 1 - current_bit
+<span class="comment"># Convierte a bytes ASCII &rarr; texto con flag</span></pre>
+    </div>
+    <div class="code-block">
+      <div class="code-header">output &mdash; mensaje decodificado</div>
+      <pre>You've made it this far. You've solved all of the crypto challenges...
+here is your flag: <span class="flag-val">CCT{I_see_dead_ciphers_all_the_time}</span></pre>
+    </div>
+  </div>
+
+  <!-- 06 FLAGS -->
+  <div class="section">
+    <h2><span class="num">06</span> Flags</h2>
+    <div class="flags-grid">
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F6A9; Task 1 &mdash; PCAP</div>
+          <div class="flag-path">cryptcat &rarr; IRC Bot &rarr; ROT13</div>
+          <div class="flag-value">CCT{h3's_a_pc@p_w1z@rd_th3re_h4s_g0t_to_6e_a_7w1st}</div>
+        </div>
+        <span class="flag-via">PCAP Analysis</span>
+      </div>
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F510; Task 2 &mdash; RE3</div>
+          <div class="flag-path">.NET IL Deobfuscation &rarr; XOR 39</div>
+          <div class="flag-value">31C02DCFDE2FCF727016E2A7054B6DA5</div>
+        </div>
+        <span class="flag-via">Reverse Engineering</span>
+      </div>
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F6A9; Task 3 &mdash; Forensics</div>
+          <div class="flag-path">7-Layer Onion &rarr; Enigma M4 &rarr; flag.zip</div>
+          <div class="flag-value">CCT{Well_that_wasn't_such_a_chore_now_was_it?}</div>
+        </div>
+        <span class="flag-via">Stego + Enigma</span>
+      </div>
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F6A9; Task 4a &mdash; Crypto</div>
+          <div class="flag-path">Sustituci&oacute;n Dvorak</div>
+          <div class="flag-value">CCT{Actu411y_a_w@rmup}</div>
+        </div>
+        <span class="flag-via">Frequency Analysis</span>
+      </div>
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F6A9; Task 4b &mdash; Crypto</div>
+          <div class="flag-path">Rail Fence 5 ra&iacute;les bottom-up</div>
+          <div class="flag-value">CCT{th@t_w4s_th4_ea5y_bu770n!}</div>
+        </div>
+        <span class="flag-via">Classical Cipher</span>
+      </div>
+      <div class="flag-card">
+        <div>
+          <div class="flag-label">&#x1F6A9; Task 4c &mdash; Crypto</div>
+          <div class="flag-path">RLE binario (d&iacute;gitos 1-6)</div>
+          <div class="flag-value">CCT{I_see_dead_ciphers_all_the_time}</div>
+        </div>
+        <span class="flag-via">Encoding</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 TÉCNICAS -->
+  <div class="section">
+    <h2><span class="num">07</span> T&eacute;cnicas &amp; Herramientas</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>T&eacute;cnica</th><th>Herramienta</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td>An&aacute;lisis PCAP</td><td>Wireshark / tshark</td><td>Extracci&oacute;n ICMP, TCP streams, HTTP objects</td></tr>
+          <tr><td>Descifrado Twofish</td><td>cryptcat</td><td>Descifrar stream puerto 4444 con key BER5348833</td></tr>
+          <tr><td>An&aacute;lisis binario</td><td>strings / objdump</td><td>IRC Bot ELF &mdash; flag ROT13</td></tr>
+          <tr><td>Decompilaci&oacute;n .NET</td><td>monodis / ildasm</td><td>Deobfuscar Dotfuscator &mdash; ecuaciones + XOR</td></tr>
+          <tr><td>Esteganograf&iacute;a</td><td>steghide / binwalk</td><td>ZIP embebido + datos ocultos en JPEG</td></tr>
+          <tr><td>Image Enhancement</td><td>Pillow / NumPy</td><td>Revelar texto oculto blanco-sobre-blanco</td></tr>
+          <tr><td>Enigma M4</td><td>cryptii.com</td><td>Descifrar cipher text con config extra&iacute;da</td></tr>
+          <tr><td>An&aacute;lisis de frecuencia</td><td>Python custom</td><td>Identificar layout Dvorak</td></tr>
+          <tr><td>Rail Fence</td><td>Python custom</td><td>5 ra&iacute;les, lectura bottom-up</td></tr>
+          <tr><td>Run-Length Encoding</td><td>Python custom</td><td>D&iacute;gitos 1-6 &rarr; binary &rarr; ASCII</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <div>CCT2019 &mdash; TryHackMe Writeup</div>
+    <div>Entorno legal y controlado // <span>TryHackMe</span></div>
+  </footer>
+
+</div>
+</body>
+</html>
